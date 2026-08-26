@@ -136,19 +136,11 @@ export const ContentBoxesGrid: React.FC<ContentBoxesGridProps> = ({ onSelectPost
                   </div>
                 ) : (
                   categoryPosts.map((item, idx) => {
-                    const lastDateText = item.importantDates?.lastDate
-                      ? `Last Date : ${item.importantDates.lastDate}`
-                      : item.importantDates?.examDate
-                      ? `Exam Date : ${item.importantDates.examDate}`
-                      : item.importantDates?.applicationBegin
-                      ? `Begin : ${item.importantDates.applicationBegin}`
-                      : '';
-
                     return (
                       <article
                         key={item.id}
                         onClick={() => onSelectPost(item.slug)}
-                        className="py-1.5 px-2.5 hover:bg-blue-50/60 transition cursor-pointer group flex flex-col justify-center"
+                        className="py-2.5 px-3 hover:bg-blue-50/60 transition cursor-pointer group flex flex-col justify-center"
                       >
                         <div>
                           <h4 className="text-[13.5px] sm:text-[14px] font-bold text-[#0000cc] group-hover:text-red-600 group-hover:underline transition leading-snug">
@@ -162,12 +154,6 @@ export const ContentBoxesGrid: React.FC<ContentBoxesGridProps> = ({ onSelectPost
                               </span>
                             )}
                           </h4>
-
-                          {lastDateText && (
-                            <div className="pl-3.5 pt-0.5 text-[11px] sm:text-[11.5px] font-bold text-red-600">
-                              {lastDateText}
-                            </div>
-                          )}
                         </div>
                       </article>
                     );
