@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Lock, Mail, ArrowRight, AlertTriangle, Key } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface AdminAuthPageProps {
@@ -40,14 +40,9 @@ export const AdminAuthPage: React.FC<AdminAuthPageProps> = ({ onNavigate }) => {
       if (fallbackRes.success) {
         onNavigate('/admin/dashboard');
       } else {
-        setError(res.error || 'Invalid administrator credentials. Please check your username/email and password.');
+        setError(res.error || 'Invalid administrator credentials. Access restricted to authorized portal administrators only.');
       }
     }
-  };
-
-  const handleQuickFill = (u: string, p: string) => {
-    setEmail(u);
-    setPassword(p);
   };
 
   return (
@@ -82,7 +77,7 @@ export const AdminAuthPage: React.FC<AdminAuthPageProps> = ({ onNavigate }) => {
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="arvindkumarprajapati537@gmail.com / admin"
+                placeholder="Enter authorized admin ID or email"
                 autoComplete="username email"
                 className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-slate-900 border border-slate-800 text-white placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-sm font-medium"
               />
@@ -100,7 +95,7 @@ export const AdminAuthPage: React.FC<AdminAuthPageProps> = ({ onNavigate }) => {
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="Enter password"
+                placeholder="••••••••••••"
                 autoComplete="current-password"
                 className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-slate-900 border border-slate-800 text-white placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-amber-500 text-sm font-medium"
               />
@@ -116,30 +111,6 @@ export const AdminAuthPage: React.FC<AdminAuthPageProps> = ({ onNavigate }) => {
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
-
-        {/* Quick fill helper buttons for authorized master admin */}
-        <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800 space-y-2">
-          <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-400">
-            <Key className="w-3.5 h-3.5" />
-            <span>Authorized Admin Quick Access:</span>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => handleQuickFill('arvindkumarprajapati537@gmail.com', 'Arvind@2000')}
-              className="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1 rounded font-mono border border-slate-700 transition cursor-pointer"
-            >
-              Arvind Prajapati
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('admin', 'admin123')}
-              className="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1 rounded font-mono border border-slate-700 transition cursor-pointer"
-            >
-              Admin (Default)
-            </button>
-          </div>
-        </div>
 
         <div className="pt-2 text-center text-xs text-slate-500 border-t border-slate-900">
           <button
