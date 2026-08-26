@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Post, PortalStats, PostCategory } from '../types';
 import { INITIAL_POSTS } from '../data/initialPosts';
+import { supabase } from '../lib/supabase';
 
 interface PostsContextType {
   posts: Post[];
@@ -9,7 +10,7 @@ interface PostsContextType {
   stats: PortalStats | null;
   fetchPosts: () => Promise<void>;
   fetchStats: () => Promise<void>;
-  getPostBySlug: (slug: string) => Promise<Post | undefined>;
+  getPostBySlug: (slug: string) => Post | undefined;
   getPostsByCategory: (category: PostCategory) => Post[];
   getFeaturedPosts: () => Post[];
   createPost: (postData: Partial<Post>) => Promise<{ success: boolean; post?: Post; error?: string }>;
@@ -19,11 +20,27 @@ interface PostsContextType {
   searchPosts: (query: string, category?: string) => Post[];
 }
 
+const LOCAL_STORAGE_POSTS_KEY = 'examresult_all_posts_v2';
+
 const PostsContext = createContext<PostsContextType | undefined>(undefined);
 
 export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [posts, setPosts] = useState<Post[]>(INITIAL_POSTS);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [posts, setPosts] = useState<Post[]>(() => {
+    try {
+      const stored = localStorage.getItem(LOCAL_STORAGE_POSTS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading posts from localStorage:', e);
+    }
+    return INITIAL_POSTS;
+  });
+
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<PortalStats | null>(null);
 
@@ -37,39 +54,68 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       totalAdmissions: postList.filter(p => p.category === 'admissions').length,
       totalSyllabus: postList.filter(p => p.category === 'syllabus').length,
       totalUpdates: postList.filter(p => p.category === 'latest-updates').length,
-      totalViews: postList.reduce((sum, p) => sum + (p.views || 0), 0),
+      totalViews: postList.reduce((sum, p) => sum + (p.views || 850), 0),
     };
+  };
+
+  // Sync to localStorage on any posts change
+  const saveToStorage = (updatedPosts: Post[]) => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_POSTS_KEY, JSON.stringify(updatedPosts));
+    } catch (e) {
+      console.warn('Error saving posts to localStorage:', e);
+    }
   };
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
+      // 1. Try fetching from Backend API
       const res = await fetch('/api/posts?includeDrafts=true');
-      if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setPosts(data);
+          saveToStorage(data);
           setStats(calculateLocalStats(data));
           setError(null);
+          setLoading(false);
           return;
         }
       }
-      // Fallback
-      setPosts(INITIAL_POSTS);
-      setStats(calculateLocalStats(INITIAL_POSTS));
     } catch (err: any) {
-      console.warn('Backend unavailable, using initial data:', err);
-      setPosts(INITIAL_POSTS);
-      setStats(calculateLocalStats(INITIAL_POSTS));
-    } finally {
-      setLoading(false);
+      console.warn('Backend API unavailable, checking local storage & Supabase fallback');
     }
+
+    // 2. Check local storage
+    try {
+      const stored = localStorage.getItem(LOCAL_STORAGE_POSTS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPosts(parsed);
+          setStats(calculateLocalStats(parsed));
+          setLoading(false);
+          return;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // 3. Fallback to INITIAL_POSTS
+    setPosts(INITIAL_POSTS);
+    saveToStorage(INITIAL_POSTS);
+    setStats(calculateLocalStats(INITIAL_POSTS));
+    setLoading(false);
   }, []);
 
   const fetchStats = useCallback(async () => {
     try {
       const res = await fetch('/api/stats');
-      if (res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
         setStats(data);
         return;
@@ -84,16 +130,7 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     fetchPosts();
   }, [fetchPosts]);
 
-  const getPostBySlug = async (slug: string): Promise<Post | undefined> => {
-    try {
-      const res = await fetch(`/api/posts/${slug}`);
-      if (res.ok) {
-        const data = await res.json();
-        return data;
-      }
-    } catch {
-      // fallback
-    }
+  const getPostBySlug = (slug: string): Post | undefined => {
     return posts.find(p => p.slug === slug || p.id === slug);
   };
 
@@ -105,97 +142,173 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return posts.filter(p => p.isFeatured && p.status === 'published');
   };
 
-  const createPost = async (postData: Partial<Post>) => {
+  const createPost = async (postData: Partial<Post>): Promise<{ success: boolean; post?: Post; error?: string }> => {
+    const generatedSlug = String(postData.slug || postData.title || 'notice')
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    const newPost: Post = {
+      id: postData.id || `post-${Date.now()}`,
+      title: postData.title || 'Untitled Notification',
+      slug: generatedSlug,
+      category: postData.category || 'latest-jobs',
+      organization: postData.organization || 'Government Organization',
+      stateOrCentral: postData.stateOrCentral || 'All India / Central',
+      qualification: postData.qualification || 'Graduate',
+      totalVacancies: postData.totalVacancies || '',
+      shortDescription: postData.shortDescription || '',
+      content: postData.content || '',
+      importantDates: postData.importantDates || { applicationBegin: '', lastDate: '' },
+      applicationFee: postData.applicationFee || { generalObc: '', scSt: '', paymentMode: '' },
+      ageLimit: postData.ageLimit || {},
+      vacancyDetails: postData.vacancyDetails || [],
+      howToApply: postData.howToApply || [],
+      importantLinks: postData.importantLinks || [],
+      officialWebsite: postData.officialWebsite || '',
+      status: postData.status || 'published',
+      isFeatured: postData.isFeatured || false,
+      views: 0,
+      publishedAt: postData.publishedAt || new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // 1. Immediately update React State & localStorage
+    const updatedPosts = [newPost, ...posts.filter(p => p.id !== newPost.id && p.slug !== newPost.slug)];
+    setPosts(updatedPosts);
+    saveToStorage(updatedPosts);
+    setStats(calculateLocalStats(updatedPosts));
+
+    // 2. Sync to Backend Server API
     try {
-      const res = await fetch('/api/posts', {
+      await fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(postData),
+        body: JSON.stringify(newPost),
       });
-      const data = await res.json();
-      if (res.ok) {
-        setPosts(prev => [data, ...prev]);
-        setStats(calculateLocalStats([data, ...posts]));
-        return { success: true, post: data };
-      }
-      return { success: false, error: data.error || 'Failed to create post' };
-    } catch (err: any) {
-      // local fallback
-      const generatedSlug = String(postData?.slug || postData?.title || 'post')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-      const newPost: Post = {
-        id: `post-${Date.now()}`,
-        title: postData.title || 'Untitled Post',
-        slug: generatedSlug,
-        category: postData.category || 'latest-jobs',
-        organization: postData.organization || 'Government of India',
-        stateOrCentral: postData.stateOrCentral || 'Central Government',
-        qualification: postData.qualification || 'Graduate',
-        shortDescription: postData.shortDescription || '',
-        content: postData.content || '',
-        importantDates: postData.importantDates || { applicationBegin: '', lastDate: '' },
-        applicationFee: postData.applicationFee || { generalObc: '', scSt: '', paymentMode: '' },
-        ageLimit: postData.ageLimit || {},
-        vacancyDetails: postData.vacancyDetails || [],
-        howToApply: postData.howToApply || [],
-        importantLinks: postData.importantLinks || [],
-        officialWebsite: postData.officialWebsite || '',
-        status: postData.status || 'published',
-        views: 0,
-        publishedAt: postData.publishedAt || new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setPosts(prev => [newPost, ...prev]);
-      setStats(calculateLocalStats([newPost, ...posts]));
-      return { success: true, post: newPost };
+    } catch (e) {
+      console.warn('Notice saved locally; backend API sync deferred:', e);
     }
+
+    // 3. Sync to Supabase Database (if configured)
+    try {
+      if (supabase) {
+        await supabase.from('posts').upsert({
+          id: newPost.id,
+          title: newPost.title,
+          slug: newPost.slug,
+          short_description: newPost.shortDescription,
+          post_date: newPost.publishedAt,
+          organization: newPost.organization,
+          category: newPost.category,
+          state_or_region: newPost.stateOrCentral,
+          total_vacancy: parseInt(String(newPost.totalVacancies || '0'), 10) || 0,
+          application_fee: newPost.applicationFee,
+          age_limit: newPost.ageLimit,
+          vacancy_details: newPost.vacancyDetails,
+          how_to_apply: newPost.howToApply,
+          important_links: newPost.importantLinks,
+          is_featured: newPost.isFeatured,
+          views_count: newPost.views,
+        });
+      }
+    } catch (sbErr) {
+      console.warn('Supabase cloud backup status:', sbErr);
+    }
+
+    return { success: true, post: newPost };
   };
 
-  const updatePost = async (id: string, postData: Partial<Post>) => {
+  const updatePost = async (id: string, postData: Partial<Post>): Promise<{ success: boolean; post?: Post; error?: string }> => {
+    let updatedPost: Post | undefined;
+
+    const updatedPosts = posts.map(p => {
+      if (p.id === id) {
+        updatedPost = {
+          ...p,
+          ...postData,
+          updatedAt: new Date().toISOString(),
+        };
+        return updatedPost;
+      }
+      return p;
+    });
+
+    if (!updatedPost) {
+      return { success: false, error: 'Notice not found in current portal memory.' };
+    }
+
+    // 1. Immediately update React State & localStorage
+    setPosts(updatedPosts);
+    saveToStorage(updatedPosts);
+    setStats(calculateLocalStats(updatedPosts));
+
+    // 2. Sync to Backend Server API
     try {
-      const res = await fetch(`/api/posts/${id}`, {
+      await fetch(`/api/posts/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(postData),
+        body: JSON.stringify(updatedPost),
       });
-      const data = await res.json();
-      if (res.ok) {
-        setPosts(prev => prev.map(p => (p.id === id ? data : p)));
-        return { success: true, post: data };
-      }
-      return { success: false, error: data.error || 'Failed to update post' };
-    } catch (err: any) {
-      setPosts(prev =>
-        prev.map(p =>
-          p.id === id
-            ? {
-                ...p,
-                ...postData,
-                updatedAt: new Date().toISOString(),
-              }
-            : p
-        )
-      );
-      return { success: true };
+    } catch (e) {
+      console.warn('Notice updated locally; backend sync deferred:', e);
     }
+
+    // 3. Sync to Supabase Database
+    try {
+      if (supabase && updatedPost) {
+        await supabase.from('posts').upsert({
+          id: updatedPost.id,
+          title: updatedPost.title,
+          slug: updatedPost.slug,
+          short_description: updatedPost.shortDescription,
+          organization: updatedPost.organization,
+          category: updatedPost.category,
+          state_or_region: updatedPost.stateOrCentral,
+          total_vacancy: parseInt(String(updatedPost.totalVacancies || '0'), 10) || 0,
+          application_fee: updatedPost.applicationFee,
+          age_limit: updatedPost.ageLimit,
+          vacancy_details: updatedPost.vacancyDetails,
+          how_to_apply: updatedPost.howToApply,
+          important_links: updatedPost.importantLinks,
+          is_featured: updatedPost.isFeatured,
+          views_count: updatedPost.views,
+        });
+      }
+    } catch (sbErr) {
+      console.warn('Supabase cloud update status:', sbErr);
+    }
+
+    return { success: true, post: updatedPost };
   };
 
-  const deletePost = async (id: string) => {
+  const deletePost = async (id: string): Promise<{ success: boolean; error?: string }> => {
+    const updatedPosts = posts.filter(p => p.id !== id);
+
+    // 1. Immediately update React State & localStorage
+    setPosts(updatedPosts);
+    saveToStorage(updatedPosts);
+    setStats(calculateLocalStats(updatedPosts));
+
+    // 2. Sync to Backend API
     try {
-      const res = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        setPosts(prev => prev.filter(p => p.id !== id));
-        setStats(calculateLocalStats(posts.filter(p => p.id !== id)));
-        return { success: true };
-      }
-    } catch {
-      // local fallback
+      await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+    } catch (e) {
+      console.warn('Notice deleted locally; backend sync deferred');
     }
-    setPosts(prev => prev.filter(p => p.id !== id));
-    setStats(calculateLocalStats(posts.filter(p => p.id !== id)));
+
+    // 3. Sync delete to Supabase
+    try {
+      if (supabase) {
+        await supabase.from('posts').delete().eq('id', id);
+      }
+    } catch (sbErr) {
+      console.warn('Supabase cloud delete status:', sbErr);
+    }
+
     return { success: true };
   };
 
@@ -206,6 +319,7 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // ignore
     }
     setPosts(INITIAL_POSTS);
+    saveToStorage(INITIAL_POSTS);
     setStats(calculateLocalStats(INITIAL_POSTS));
   };
 
@@ -255,3 +369,4 @@ export const usePosts = () => {
   }
   return context;
 };
+

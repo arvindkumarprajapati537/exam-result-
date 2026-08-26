@@ -273,22 +273,34 @@ async function startServer() {
     }
 
     // Master Super Admin Authentication for Arvind Kumar Prajapati
+    const cleanPassword = (password || '').trim();
+    const isAdminPassword =
+      cleanPassword === 'Arvind@2000' ||
+      cleanPassword === 'admin123' ||
+      cleanPassword === 'admin' ||
+      cleanPassword === 'arvind' ||
+      cleanPassword.toLowerCase() === 'arvind@2000';
+
     if (
-      email.toLowerCase().trim() === 'arvindkumarprajapati537@gmail.com' &&
-      (password === 'Arvind@2000' || password === 'admin123' || password === 'admin')
+      (email.toLowerCase().trim() === 'arvindkumarprajapati537@gmail.com' ||
+        email.toLowerCase().trim() === 'arvind' ||
+        email.toLowerCase().trim() === 'admin' ||
+        email.toLowerCase().trim() === 'admin@examresult.gov.in' ||
+        email.toLowerCase().trim() === 'admin@examresult.com') &&
+      isAdminPassword
     ) {
       const admin: User = {
         id: 'user-admin-arvind',
-        name: 'Arvind Kumar Prajapati',
-        email: 'arvindkumarprajapati537@gmail.com',
+        name: email.toLowerCase().includes('arvind') ? 'Arvind Kumar Prajapati' : 'Portal Administrator',
+        email: email.toLowerCase().includes('arvind') ? 'arvindkumarprajapati537@gmail.com' : 'admin@examresult.gov.in',
         role: 'admin',
         createdAt: '2026-01-01T00:00:00Z',
         savedPostIds: ['post-1', 'post-2'],
       };
       // Ensure user list has updated admin
-      const existingIdx = users.findIndex(u => u.email.toLowerCase() === 'arvindkumarprajapati537@gmail.com');
+      const existingIdx = users.findIndex(u => u.email.toLowerCase() === admin.email.toLowerCase());
       if (existingIdx > -1) {
-        users[existingIdx] = { ...users[existingIdx], role: 'admin', name: 'Arvind Kumar Prajapati' };
+        users[existingIdx] = { ...users[existingIdx], role: 'admin', name: admin.name };
       } else {
         users.unshift(admin);
       }
@@ -344,16 +356,27 @@ async function startServer() {
   app.post('/api/auth/admin-login', (req, res) => {
     const { usernameOrEmail, password } = req.body;
     const cleanId = (usernameOrEmail || '').toLowerCase().trim();
+    const cleanPass = (password || '').trim();
 
-    if (
-      cleanId === 'arvindkumarprajapati537@gmail.com' &&
-      (password === 'Arvind@2000' || password === 'admin123' || password === 'admin')
-    ) {
-      const users = loadUsers();
+    const isAdminPassword =
+      cleanPass === 'Arvind@2000' ||
+      cleanPass === 'admin123' ||
+      cleanPass === 'admin' ||
+      cleanPass === 'arvind' ||
+      cleanPass.toLowerCase() === 'arvind@2000';
+
+    const isAdminUser =
+      cleanId === 'arvindkumarprajapati537@gmail.com' ||
+      cleanId === 'arvind' ||
+      cleanId === 'admin' ||
+      cleanId === 'admin@examresult.gov.in' ||
+      cleanId === 'admin@examresult.com';
+
+    if (isAdminUser && isAdminPassword) {
       const admin: User = {
         id: 'user-admin-arvind',
-        name: 'Arvind Kumar Prajapati',
-        email: 'arvindkumarprajapati537@gmail.com',
+        name: cleanId.includes('arvind') ? 'Arvind Kumar Prajapati' : 'Portal Administrator',
+        email: cleanId.includes('arvind') ? 'arvindkumarprajapati537@gmail.com' : 'admin@examresult.gov.in',
         role: 'admin',
         createdAt: '2026-01-01T00:00:00Z',
         savedPostIds: ['post-1', 'post-2'],
@@ -364,18 +387,9 @@ async function startServer() {
       });
     }
 
-    if (
-      (cleanId === 'admin' || cleanId === 'admin@examresult.gov.in' || cleanId === 'admin@examresult.com') &&
-      (password === 'admin123' || password === 'admin' || password === 'Arvind@2000')
-    ) {
-      const users = loadUsers();
-      const admin = users.find(u => u.role === 'admin') || INITIAL_USERS[0];
-      return res.json({
-        token: `token-admin-${Date.now()}`,
-        user: admin,
-      });
-    }
-    return res.status(401).json({ error: 'Invalid Admin credentials. Use arvindkumarprajapati537@gmail.com / Arvind@2000' });
+    return res.status(401).json({
+      error: 'Invalid Admin credentials. Use arvindkumarprajapati537@gmail.com / Arvind@2000 or admin / admin123',
+    });
   });
 
   // Auth: Register
