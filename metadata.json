@@ -1,0 +1,6 @@
+{
+  "name": "EXAM RESULT",
+  "description": "Government Exam & Job Information Portal with latest jobs, exam results, admit cards, answer keys, syllabus, admissions, and admin management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

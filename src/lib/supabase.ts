@@ -1,0 +1,44 @@
+import { createClient } from '@supabase/supabase-js';
+
+// Supabase project credentials provided by user
+export const SUPABASE_PROJECT_ID = 'congripxkyyqjsuoqvec';
+
+const getEnvVar = (key: string): string | undefined => {
+  if (typeof process !== 'undefined' && process.env && process.env[key]) {
+    return process.env[key];
+  }
+  if (typeof window !== 'undefined' && (window as any).__ENV__ && (window as any).__ENV__[key]) {
+    return (window as any).__ENV__[key];
+  }
+  return undefined;
+};
+
+export const SUPABASE_URL =
+  getEnvVar('VITE_SUPABASE_URL') ||
+  getEnvVar('SUPABASE_URL') ||
+  `https://${SUPABASE_PROJECT_ID}.supabase.co`;
+
+export const SUPABASE_ANON_KEY =
+  getEnvVar('VITE_SUPABASE_ANON_KEY') ||
+  getEnvVar('SUPABASE_KEY') ||
+  'sb_publishable_QGQr1Txr9t1Qc0is_mwJmA_EyM3bSNF';
+
+// Initialize Supabase Client
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/**
+ * Check connectivity to Supabase
+ */
+export async function testSupabaseConnection(): Promise<{ connected: boolean; message: string }> {
+  try {
+    // Ping supabase health endpoint or auth session
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      return { connected: false, message: error.message };
+    }
+    return { connected: true, message: 'Connected to Supabase successfully' };
+  } catch (err: any) {
+    return { connected: false, message: err?.message || 'Supabase connection failed' };
+  }
+}
+

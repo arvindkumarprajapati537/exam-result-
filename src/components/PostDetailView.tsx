@@ -1,0 +1,862 @@
+import React, { useState } from 'react';
+import {
+  Calendar,
+  Building2,
+  Bookmark,
+  Share2,
+  Printer,
+  CheckCircle2,
+  ExternalLink,
+  Users,
+  CreditCard,
+  UserCheck,
+  AlertTriangle,
+  ArrowLeft,
+  Clock,
+  Sparkles,
+  Calculator,
+  Copy,
+  Check,
+  Award,
+  FileText,
+  KeyRound,
+  BookOpen,
+  GraduationCap,
+  Briefcase,
+  Activity,
+  Send,
+  Youtube,
+  Globe,
+  Radio,
+} from 'lucide-react';
+import { Post, PhysicalEligibilityItem } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { AgeCalculatorModal } from './AgeCalculatorModal';
+
+interface PostDetailViewProps {
+  post: Post;
+  onBack: () => void;
+  onSelectPost: (slug: string) => void;
+  allPosts: Post[];
+}
+
+export const PostDetailView: React.FC<PostDetailViewProps> = ({
+  post,
+  onBack,
+  onSelectPost,
+  allPosts,
+}) => {
+  const { toggleFavorite, isFavorite } = useAuth();
+  const { printPage } = useTheme();
+  const saved = isFavorite(post.id);
+  const [copied, setCopied] = useState(false);
+  const [showAgeCalc, setShowAgeCalc] = useState(false);
+
+  // Null safety fallbacks
+  const postCategory = post.category || 'latest-jobs';
+  const categoryLabel = (postCategory || 'General').replace(/-/g, ' ');
+  const organizationName = post.organization || 'Government Examination Board';
+  const postTitle = post.title || 'Official Examination Notice';
+  const advtNumber = post.advtNo || 'Advt No. : 2026/Recruit-01';
+
+  // Format dates safely
+  const formattedPostDate = post.publishedAt
+    ? new Date(post.publishedAt).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      })
+    : 'Recent 2026';
+
+  const formattedUpdateDate = post.updatedAt
+    ? new Date(post.updatedAt).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      })
+    : formattedPostDate;
+
+  // Social sharing handlers
+  const handleCopyLink = () => {
+    try {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  const handleShareWhatsapp = () => {
+    const text = encodeURIComponent(
+      `*${postTitle}*\n🏢 ${organizationName}\nCheck Dates, Vacancies, Eligibility & Important Links:\n${window.location.href}`
+    );
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+  };
+
+  const handleShareTelegram = () => {
+    const text = encodeURIComponent(`*${postTitle}*\n${window.location.href}`);
+    window.open(`https://t.me/share/url?url=${window.location.href}&text=${text}`, '_blank');
+  };
+
+  const handleShareFacebook = () => {
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
+      '_blank'
+    );
+  };
+
+  const handleShareTwitter = () => {
+    window.open('https://x.com/Arvindk29646455', '_blank');
+  };
+
+  // Check if physical eligibility table is needed
+  const isPoliceOrDefence =
+    post.physicalEligibility && post.physicalEligibility.length > 0
+      ? true
+      : /police|constable|fireman|army|navy|airforce|defence|gd|daroga|sub-inspector|si|bsf|cisf|crpf|ssb|itbp/i.test(
+          `${post.title} ${post.organization} ${post.shortDescription || ''}`
+        );
+
+  const defaultPhysicalDetails: PhysicalEligibilityItem[] = [
+    {
+      category: 'Height',
+      male: 'Gen / OBC / SC: 168 CM (ST: 160 CM)',
+      female: 'Gen / OBC / SC: 152 CM (ST: 147 CM)',
+    },
+    {
+      category: 'Chest',
+      male: '79 - 84 CM (Exp. 5 CM) [ST: 77-82 CM]',
+      female: 'Not Applicable (Min Weight 40 KG)',
+    },
+    {
+      category: 'Running Race',
+      male: '4.8 KM in 25 Minutes',
+      female: '2.4 KM in 14 Minutes',
+    },
+  ];
+
+  const physicalDetailsToDisplay: PhysicalEligibilityItem[] =
+    post.physicalEligibility && post.physicalEligibility.length > 0
+      ? post.physicalEligibility
+      : isPoliceOrDefence
+      ? defaultPhysicalDetails
+      : [];
+
+  // Related posts
+  const relatedPosts = allPosts
+    .filter(
+      p =>
+        p.id !== post.id &&
+        (p.category === postCategory || p.organization === post.organization)
+    )
+    .slice(0, 4);
+
+  // Category Icon & Accent Colors
+  const getCategoryBadge = () => {
+    switch (postCategory) {
+      case 'results':
+        return {
+          icon: <Award className="w-4 h-4 text-rose-600" />,
+          bg: 'bg-rose-50 border-rose-300 text-rose-800',
+          solidBg: 'bg-rose-700',
+        };
+      case 'admit-card':
+        return {
+          icon: <FileText className="w-4 h-4 text-blue-600" />,
+          bg: 'bg-blue-50 border-blue-300 text-blue-800',
+          solidBg: 'bg-blue-700',
+        };
+      case 'answer-key':
+        return {
+          icon: <KeyRound className="w-4 h-4 text-amber-600" />,
+          bg: 'bg-amber-50 border-amber-300 text-amber-900',
+          solidBg: 'bg-amber-600',
+        };
+      case 'syllabus':
+        return {
+          icon: <BookOpen className="w-4 h-4 text-purple-600" />,
+          bg: 'bg-purple-50 border-purple-300 text-purple-800',
+          solidBg: 'bg-purple-700',
+        };
+      case 'admissions':
+        return {
+          icon: <GraduationCap className="w-4 h-4 text-teal-600" />,
+          bg: 'bg-teal-50 border-teal-300 text-teal-800',
+          solidBg: 'bg-teal-700',
+        };
+      default:
+        return {
+          icon: <Briefcase className="w-4 h-4 text-emerald-600" />,
+          bg: 'bg-emerald-50 border-emerald-300 text-emerald-800',
+          solidBg: 'bg-emerald-700',
+        };
+    }
+  };
+
+  const catMeta = getCategoryBadge();
+
+  return (
+    <div className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 space-y-4">
+      {/* 1. Breadcrumbs & Top Navigation Action Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-blue-900 hover:text-blue-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to All Notices</span>
+        </button>
+
+        {/* Quick Utility Actions */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            onClick={() => toggleFavorite(post.id)}
+            className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition cursor-pointer ${
+              saved
+                ? 'bg-amber-50 text-amber-700 border-amber-300 font-bold'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            <Bookmark className={`w-3.5 h-3.5 ${saved ? 'fill-amber-500 text-amber-500' : ''}`} />
+            <span>{saved ? 'Saved' : 'Save Notice'}</span>
+          </button>
+
+          <button
+            onClick={handleCopyLink}
+            className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
+            title="Copy Page URL"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+            <span>{copied ? 'Copied Link' : 'Copy URL'}</span>
+          </button>
+
+          <button
+            onClick={printPage}
+            className="hidden sm:flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-800 text-white hover:bg-slate-700 transition shadow-2xs cursor-pointer"
+            title="Print Page / Save as PDF"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Print Form</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Top Large Advertisement Space (Responsive Banner Placeholder) */}
+      <div className="w-full bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center">
+        <div className="flex flex-col items-center justify-center space-y-1">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+            — Advertisement Space / Google AdSense Responsive Unit —
+          </span>
+          <p className="text-xs text-slate-500 font-medium">
+            (Standard 728x90 Leaderboard / 320x100 Mobile Ad Zone for Live Portal Monetization)
+          </p>
+        </div>
+      </div>
+
+      {/* 3. Main Detail Document Container (Classic Indian Portal Table Theme) */}
+      <article className="bg-white rounded-xl border-2 border-slate-300 shadow-sm overflow-hidden p-4 sm:p-7 space-y-5">
+        
+        {/* Top Post Info Section */}
+        <div className="space-y-3 pb-3 border-b-2 border-slate-200">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3 py-0.5 rounded-full border ${catMeta.bg}`}
+            >
+              {catMeta.icon}
+              <span>{categoryLabel}</span>
+            </span>
+
+            <span className="bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold px-2.5 py-0.5 rounded">
+              {post.stateOrCentral || 'All India'}
+            </span>
+
+            {post.totalVacancies && (
+              <span className="bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-bold px-2.5 py-0.5 rounded">
+                Vacancies: {post.totalVacancies}
+              </span>
+            )}
+          </div>
+
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#0000cc] font-serif leading-tight">
+            {postTitle}
+          </h1>
+
+          {/* Post Date & Update Date Row */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 font-medium pt-1">
+            <span className="flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <strong>Post Date:</strong> {formattedPostDate}
+            </span>
+            <span className="text-slate-300 hidden sm:inline">|</span>
+            <span className="flex items-center gap-1 text-red-600 font-semibold">
+              <Clock className="w-3.5 h-3.5 text-red-500" />
+              <strong>Update Date:</strong> {formattedUpdateDate}
+            </span>
+            <span className="text-slate-300 hidden sm:inline">|</span>
+            <span className="flex items-center gap-1 text-slate-500">
+              <Building2 className="w-3.5 h-3.5 text-slate-400" />
+              {organizationName}
+            </span>
+          </div>
+
+          {/* Short Information Summary Box */}
+          <div className="p-3.5 sm:p-4 rounded-lg bg-amber-50/70 border border-amber-200 text-slate-800 text-xs sm:text-sm leading-relaxed">
+            <p className="font-bold text-amber-950 mb-1">
+              <span className="text-red-600 mr-1">Short Information :</span>
+              {organizationName} has issued official recruitment / examination notification for{' '}
+              <strong>{postTitle}</strong>.
+            </p>
+            <p className="text-slate-700">
+              {post.shortDescription ||
+                'Candidates who are interested and meet all eligibility criteria can check the exam dates, fee rules, age limit, and application process below before applying online.'}
+            </p>
+            {post.content && (
+              <p className="mt-2 text-slate-700 border-t border-amber-200/80 pt-2 font-normal">
+                {post.content}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* 4. Social Share Buttons Ribbon */}
+        <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
+            <Share2 className="w-3.5 h-3.5 text-blue-600" />
+            <span>Share with Friends :</span>
+          </span>
+
+          <div className="flex flex-wrap items-center gap-1.5 text-xs font-bold">
+            <button
+              onClick={handleShareWhatsapp}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded transition flex items-center gap-1 cursor-pointer"
+            >
+              <span>WhatsApp</span>
+            </button>
+            <button
+              onClick={handleShareTelegram}
+              className="bg-sky-500 hover:bg-sky-600 text-white px-2.5 py-1 rounded transition flex items-center gap-1 cursor-pointer"
+            >
+              <Send className="w-3 h-3" />
+              <span>Telegram</span>
+            </button>
+            <button
+              onClick={handleShareFacebook}
+              className="bg-blue-700 hover:bg-blue-800 text-white px-2.5 py-1 rounded transition cursor-pointer"
+            >
+              Facebook
+            </button>
+            <button
+              onClick={handleShareTwitter}
+              className="bg-slate-900 hover:bg-black text-white px-2.5 py-1 rounded transition cursor-pointer"
+            >
+              X / Twitter
+            </button>
+            <button
+              onClick={handleCopyLink}
+              className="bg-slate-200 hover:bg-slate-300 text-slate-800 px-2.5 py-1 rounded transition flex items-center gap-1 cursor-pointer"
+            >
+              <Copy className="w-3 h-3" />
+              <span>{copied ? 'Copied' : 'Copy'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 5. Main Post Information Box (Centered Bordered Portal Header Box) */}
+        <div className="border-2 border-red-700 bg-white rounded-lg p-3 sm:p-5 text-center space-y-2">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-black text-red-700 font-serif uppercase tracking-tight">
+            {organizationName}
+          </h2>
+          <h3 className="text-base sm:text-lg font-extrabold text-[#0000cc] font-serif">
+            {postTitle}
+          </h3>
+          <p className="text-xs sm:text-sm font-bold text-slate-800">
+            {advtNumber} | Short Details of Notification
+          </p>
+          <div className="inline-block bg-red-700 text-white text-xs sm:text-sm font-extrabold tracking-wider px-4 py-1 rounded">
+            WWW.EXAMRESULT.COM
+          </div>
+        </div>
+
+        {/* 6. Important Dates & Application Fee 2-Column Responsive Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Important Dates Column */}
+          <div className="rounded-lg border-2 border-emerald-600 overflow-hidden bg-white">
+            <div className="bg-emerald-700 text-white px-3.5 py-2 font-black text-sm uppercase tracking-wide font-serif flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-emerald-200" />
+                Important Dates
+              </span>
+              <span className="text-[11px] font-sans font-normal text-emerald-100">Schedule</span>
+            </div>
+            <div className="p-3.5 space-y-2 text-xs sm:text-sm">
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-700 font-medium">Application Begin :</span>
+                <span className="font-bold text-slate-900">
+                  {post.importantDates?.applicationBegin || 'Available Now'}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center py-1 border-b border-slate-100 bg-red-50/60 px-1.5 rounded">
+                <span className="text-red-900 font-bold">Last Date for Apply Online :</span>
+                <span className="font-extrabold text-red-700">
+                  {post.importantDates?.lastDate || 'Notified Soon'}
+                </span>
+              </div>
+
+              {post.importantDates?.feePaymentLastDate && (
+                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span className="text-slate-700 font-medium">Last Date for Fee Payment :</span>
+                  <span className="font-bold text-slate-900">
+                    {post.importantDates.feePaymentLastDate}
+                  </span>
+                </div>
+              )}
+
+              {post.importantDates?.correctionDate && (
+                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span className="text-slate-700 font-medium">Correction Window Date :</span>
+                  <span className="font-bold text-slate-900">
+                    {post.importantDates.correctionDate}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-700 font-medium">Exam Date :</span>
+                <span className="font-bold text-blue-900">
+                  {post.importantDates?.examDate || 'As per Schedule'}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-700 font-medium">Admit Card Available :</span>
+                <span className="font-bold text-slate-900">
+                  {post.importantDates?.admitCardDate || 'Before Examination'}
+                </span>
+              </div>
+
+              {post.importantDates?.resultDate && (
+                <div className="flex justify-between items-center py-1">
+                  <span className="text-slate-700 font-medium">Result Available :</span>
+                  <span className="font-bold text-emerald-800">
+                    {post.importantDates.resultDate}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Application Fee Column */}
+          <div className="rounded-lg border-2 border-emerald-600 overflow-hidden bg-white">
+            <div className="bg-emerald-700 text-white px-3.5 py-2 font-black text-sm uppercase tracking-wide font-serif flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <CreditCard className="w-4 h-4 text-emerald-200" />
+                Application Fee
+              </span>
+              <span className="text-[11px] font-sans font-normal text-emerald-100">
+                Fee Details
+              </span>
+            </div>
+            <div className="p-3.5 space-y-2 text-xs sm:text-sm">
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-700 font-medium">General / OBC / EWS :</span>
+                <span className="font-bold text-slate-900">
+                  {post.applicationFee?.generalObc || '₹ 0/-'}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-700 font-medium">SC / ST :</span>
+                <span className="font-bold text-slate-900">
+                  {post.applicationFee?.scSt || '₹ 0/-'}
+                </span>
+              </div>
+
+              {post.applicationFee?.phFemale && (
+                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span className="text-slate-700 font-medium">All Category Female / PH :</span>
+                  <span className="font-bold text-slate-900">{post.applicationFee.phFemale}</span>
+                </div>
+              )}
+
+              <div className="py-1 border-b border-slate-100">
+                <span className="text-slate-700 font-semibold block text-xs mb-0.5">
+                  Payment Mode :
+                </span>
+                <span className="font-medium text-slate-800 text-xs">
+                  {post.applicationFee?.paymentMode ||
+                    'Pay the Examination Fee Through Debit Card, Credit Card, Net Banking, UPI or SBI E-Challan'}
+                </span>
+              </div>
+
+              {post.applicationFee?.notes && (
+                <p className="text-[11px] text-slate-500 italic pt-1">{post.applicationFee.notes}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 7. Age Limit Details Section with Interactive Calculator */}
+        <div className="rounded-lg border-2 border-emerald-600 bg-emerald-50/20 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200 pb-2 mb-3">
+            <h3 className="text-sm sm:text-base font-black text-emerald-950 font-serif flex items-center gap-1.5">
+              <UserCheck className="w-4 h-4 text-emerald-700" />
+              <span>
+                {organizationName} : Age Limit as on {post.ageLimit?.asOfDate || '01/07/2026'}
+              </span>
+            </h3>
+
+            <button
+              onClick={() => setShowAgeCalc(true)}
+              className="inline-flex items-center gap-1 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-1 rounded transition self-start sm:self-auto cursor-pointer"
+            >
+              <Calculator className="w-3.5 h-3.5" />
+              <span>Age Calculator</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm">
+            <div className="bg-white p-2.5 rounded border border-emerald-200">
+              <span className="text-slate-500 block text-xs">Minimum Age :</span>
+              <span className="font-bold text-slate-900 text-sm">
+                {post.ageLimit?.minAge ? `${post.ageLimit.minAge} Years.` : '18 Years (or as per rules)'}
+              </span>
+            </div>
+
+            <div className="bg-white p-2.5 rounded border border-emerald-200">
+              <span className="text-slate-500 block text-xs">Maximum Age :</span>
+              <span className="font-bold text-slate-900 text-sm">
+                {post.ageLimit?.maxAge ? `${post.ageLimit.maxAge} Years.` : 'No Upper Limit / As per Post'}
+              </span>
+            </div>
+
+            <div className="bg-white p-2.5 rounded border border-emerald-200 sm:col-span-3 lg:col-span-1">
+              <span className="text-slate-500 block text-xs">Age Relaxation :</span>
+              <span className="font-semibold text-slate-800 text-xs">
+                {post.ageLimit?.relaxationDetails ||
+                  'Age Relaxation Extra as per Official Recruitment Rules (OBC: 3 Years, SC/ST: 5 Years).'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 8. Vacancy Details Section (Bordered Portal Table) */}
+        {post.vacancyDetails && post.vacancyDetails.length > 0 && (
+          <div className="space-y-2">
+            <div className="bg-emerald-700 text-white px-3.5 py-2 rounded-t-lg font-black text-sm uppercase tracking-wide font-serif flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Users className="w-4 h-4 text-emerald-200" />
+                EXAM RESULT Recruitment 2026 : Vacancy Details
+              </span>
+              {post.totalVacancies && (
+                <span className="text-xs font-bold bg-white text-emerald-900 px-2 py-0.5 rounded">
+                  Total : {post.totalVacancies}
+                </span>
+              )}
+            </div>
+
+            <div className="overflow-x-auto rounded-b-lg border-2 border-emerald-600 bg-white">
+              <table className="min-w-full divide-y-2 divide-slate-200 text-xs sm:text-sm text-left">
+                <thead className="bg-slate-100 text-slate-900 font-serif uppercase tracking-wider text-[11px]">
+                  <tr>
+                    <th className="py-2.5 px-3 border-r border-slate-200">Post Name</th>
+                    <th className="py-2.5 px-3 border-r border-slate-200 text-center whitespace-nowrap">
+                      Total Post
+                    </th>
+                    <th className="py-2.5 px-3 border-r border-slate-200">Category Breakdown</th>
+                    <th className="py-2.5 px-3">Eligibility Details</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {post.vacancyDetails.map((vac, idx) => (
+                    <tr key={vac.id || idx} className="hover:bg-blue-50/40 transition">
+                      <td className="py-2.5 px-3 font-bold text-[#0000cc] border-r border-slate-200 align-top">
+                        {vac.postName}
+                      </td>
+                      <td className="py-2.5 px-3 font-black text-red-600 text-center border-r border-slate-200 align-top whitespace-nowrap">
+                        {vac.totalPosts}
+                      </td>
+                      <td className="py-2.5 px-3 text-xs text-slate-700 border-r border-slate-200 align-top">
+                        {vac.ur !== undefined ? (
+                          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] font-mono">
+                            <span>UR : {vac.ur}</span>
+                            <span>OBC : {vac.obc}</span>
+                            <span>EWS : {vac.ews}</span>
+                            <span>SC : {vac.sc}</span>
+                            <span>ST : {vac.st}</span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-500 italic">Category-wise reserved</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 text-xs text-slate-800 leading-relaxed align-top">
+                        {vac.eligibility}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* 9. Physical Eligibility Details Section (Conditional - Police / Defence / Constable / Security) */}
+        {physicalDetailsToDisplay.length > 0 && (
+          <div className="space-y-2">
+            <div className="bg-red-700 text-white px-3.5 py-2 rounded-t-lg font-black text-sm uppercase tracking-wide font-serif flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Activity className="w-4 h-4 text-amber-300" />
+                Physical Eligibility Details
+              </span>
+              <span className="text-[11px] font-sans font-normal text-amber-200">
+                PST / PET Standards
+              </span>
+            </div>
+
+            <div className="overflow-x-auto rounded-b-lg border-2 border-red-700 bg-white">
+              <table className="min-w-full divide-y-2 divide-slate-200 text-xs sm:text-sm text-left">
+                <thead className="bg-slate-100 text-slate-900 font-serif uppercase tracking-wider text-[11px]">
+                  <tr>
+                    <th className="py-2.5 px-3 border-r border-slate-200">Category / Parameter</th>
+                    <th className="py-2.5 px-3 border-r border-slate-200">Male Candidate</th>
+                    <th className="py-2.5 px-3">Female Candidate</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {physicalDetailsToDisplay.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-amber-50/40 transition">
+                      <td className="py-2.5 px-3 font-bold text-slate-900 border-r border-slate-200">
+                        {item.category}
+                      </td>
+                      <td className="py-2.5 px-3 font-medium text-slate-800 border-r border-slate-200">
+                        {item.male}
+                      </td>
+                      <td className="py-2.5 px-3 font-medium text-slate-800">
+                        {item.female}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* 10. Educational Eligibility Summary */}
+        {post.eligibilitySummary && (
+          <div className="p-3.5 rounded-lg bg-blue-50/80 border border-blue-200 text-xs sm:text-sm space-y-1">
+            <span className="font-bold text-blue-950 block">Eligibility Summary :</span>
+            <p className="text-slate-800 leading-relaxed">{post.eligibilitySummary}</p>
+          </div>
+        )}
+
+        {/* 11. How to Apply Section (Numbered List) */}
+        {post.howToApply && post.howToApply.length > 0 && (
+          <div className="rounded-lg border-2 border-blue-700 bg-blue-50/20 p-4 sm:p-5 space-y-3">
+            <h3 className="text-sm sm:text-base font-black text-blue-950 font-serif flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-blue-700" />
+              <span>How to Fill {postTitle} Online Form 2026</span>
+            </h3>
+            <ol className="space-y-2 text-xs sm:text-sm text-slate-800 list-decimal list-inside leading-relaxed">
+              {post.howToApply.map((step, idx) => (
+                <li key={idx} className="pl-1">
+                  <span className="font-medium text-slate-900">{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        {/* 12. Important Instructions Banner */}
+        <div className="bg-red-50 border-2 border-red-500 p-3.5 rounded-lg text-center text-xs sm:text-sm text-red-950 font-bold leading-relaxed space-y-1">
+          <p className="text-red-700 uppercase tracking-wide">
+            ★ Interested Candidates Can Read the Full {postTitle} Notification Before Apply Online ★
+          </p>
+        </div>
+
+        {/* 13. Mobile Updates Promotion Section */}
+        <div className="bg-slate-900 text-white p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <h4 className="text-xs sm:text-sm font-bold text-amber-300 flex items-center gap-1.5">
+              <Radio className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+              <span>Get Free EXAM RESULT Updates on Your Phone</span>
+            </h4>
+            <p className="text-xs text-slate-300">
+              Join official WhatsApp, Telegram & YouTube channels for fastest admit card and result alerts.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href="https://whatsapp.com/channel/0029VbDExHh8fewu2xmVj03M"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded transition"
+            >
+              WhatsApp
+            </a>
+            <a
+              href="https://t.me/examresult0156"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-sky-500 hover:bg-sky-400 text-white text-xs font-bold px-3 py-1.5 rounded transition"
+            >
+              Telegram
+            </a>
+            <a
+              href="https://www.youtube.com/@Arvindofficial345"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded transition"
+            >
+              YouTube
+            </a>
+          </div>
+        </div>
+
+        {/* 14. Useful Important Links Table (High Visibility Portal Links) */}
+        <div className="space-y-2 pt-2">
+          <div className="bg-red-700 text-white px-3.5 py-2.5 rounded-t-lg font-black text-sm sm:text-base uppercase tracking-wide font-serif text-center">
+            Useful Important Links
+          </div>
+
+          <div className="overflow-x-auto rounded-b-lg border-2 border-red-700 bg-white">
+            <table className="min-w-full divide-y divide-slate-200 text-xs sm:text-sm">
+              <tbody className="divide-y divide-slate-200">
+                {post.importantLinks && post.importantLinks.length > 0 ? (
+                  post.importantLinks.map((lnk, idx) => (
+                    <tr key={lnk.id || idx} className="hover:bg-red-50/30 transition">
+                      <td className="py-2.5 px-3.5 font-extrabold text-slate-900 border-r border-slate-200">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-red-600 font-black">•</span>
+                          <span>{lnk.label}</span>
+                          {lnk.badge && (
+                            <span className="bg-red-600 text-white text-[9px] font-black uppercase px-1.5 py-0.2 rounded ml-1 animate-pulse">
+                              {lnk.badge}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3.5 text-center whitespace-nowrap w-[150px]">
+                        <a
+                          href={lnk.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 bg-[#0000cc] hover:bg-red-600 text-white font-extrabold text-xs px-4 py-1.5 rounded shadow-xs transition"
+                        >
+                          <span>Click Here</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="py-2.5 px-3.5 font-bold text-slate-900 border-r border-slate-200">
+                      Official Portal Website
+                    </td>
+                    <td className="py-2.5 px-3.5 text-center">
+                      <a
+                        href={post.officialWebsite || 'https://gov.in'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 bg-[#0000cc] text-white font-bold text-xs px-4 py-1.5 rounded"
+                      >
+                        <span>Click Here</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </td>
+                  </tr>
+                )}
+
+                {/* Additional Official Website Row */}
+                {post.officialWebsite && (
+                  <tr className="hover:bg-slate-50 transition bg-slate-50/50">
+                    <td className="py-2.5 px-3.5 font-extrabold text-slate-900 border-r border-slate-200">
+                      <div className="flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Official Website</span>
+                      </div>
+                    </td>
+                    <td className="py-2.5 px-3.5 text-center whitespace-nowrap">
+                      <a
+                        href={post.officialWebsite}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 bg-slate-800 hover:bg-black text-white font-bold text-xs px-4 py-1.5 rounded transition"
+                      >
+                        <span>Click Here</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* 15. Disclaimer Notice */}
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-lg text-xs text-amber-900 leading-relaxed">
+          <p className="font-bold flex items-center gap-1 mb-0.5">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+            Candidate Advisory :
+          </p>
+          <p>
+            <strong>EXAM RESULT</strong> is a free educational information service portal. While every effort is made to maintain accurate information, candidates are advised to verify details with the official advertisement on <strong>{organizationName}</strong> before making any online payment or submitting applications.
+          </p>
+        </div>
+      </article>
+
+      {/* 16. Related Posts / Recommended Updates Grid */}
+      {relatedPosts.length > 0 && (
+        <section className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+          <h3 className="text-sm sm:text-base font-black text-slate-900 font-serif flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span>More Examinations & Results You May Be Interested In</span>
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {relatedPosts.map(rel => (
+              <div
+                key={rel.id}
+                onClick={() => onSelectPost(rel.slug)}
+                className="p-2.5 rounded-lg border border-slate-200 hover:border-blue-500 bg-slate-50/50 hover:bg-blue-50/30 transition cursor-pointer group flex flex-col justify-between"
+              >
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800 bg-blue-100 px-1.5 py-0.2 rounded">
+                    {rel.organization?.split('(')[0] || 'Govt'}
+                  </span>
+                  <h4 className="font-bold text-xs sm:text-[13px] text-[#0000cc] group-hover:text-red-600 group-hover:underline transition mt-1 line-clamp-2">
+                    {rel.title}
+                  </h4>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-500">
+                  <span className="text-red-600 font-semibold">
+                    {rel.importantDates?.lastDate
+                      ? `Last Date: ${rel.importantDates.lastDate}`
+                      : rel.importantDates?.examDate
+                      ? `Exam: ${rel.importantDates.examDate}`
+                      : 'Active'}
+                  </span>
+                  <span className="font-bold text-blue-800">View Details →</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Interactive Age Calculator Modal */}
+      {showAgeCalc && (
+        <AgeCalculatorModal
+          asOfDate={post.ageLimit?.asOfDate || '01/07/2026'}
+          minAge={post.ageLimit?.minAge}
+          maxAge={post.ageLimit?.maxAge}
+          onClose={() => setShowAgeCalc(false)}
+        />
+      )}
+    </div>
+  );
+};
