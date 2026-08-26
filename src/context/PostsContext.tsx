@@ -67,11 +67,14 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const fetchPosts = useCallback(async () => {
-    setLoading(true);
+  const fetchPosts = useCallback(async (isBackground = false) => {
+    if (!isBackground) setLoading(true);
     try {
-      // 1. Try fetching from Backend API
-      const res = await fetch('/api/posts?includeDrafts=true');
+      // 1. Try fetching from Backend API with cache busting
+      const res = await fetch(`/api/posts?includeDrafts=true&_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
+      });
       const contentType = res.headers.get('content-type') || '';
       if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
@@ -113,7 +116,7 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch('/api/stats');
+      const res = await fetch(`/api/stats?_t=${Date.now()}`, { cache: 'no-store' });
       const contentType = res.headers.get('content-type') || '';
       if (res.ok && contentType.includes('application/json')) {
         const data = await res.json();
@@ -126,8 +129,32 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setStats(calculateLocalStats(posts));
   }, [posts]);
 
+  // Initial fetch and real-time cross-device sync
   useEffect(() => {
     fetchPosts();
+
+    // 1. Periodic background polling so any change on mobile/desktop instantly reflects everywhere
+    const intervalId = setInterval(() => {
+      fetchPosts(true);
+    }, 5000);
+
+    // 2. Re-fetch immediately when user focuses the tab or switches back to browser
+    const handleFocusOrVisible = () => {
+      if (document.visibilityState === 'visible' || !document.hidden) {
+        fetchPosts(true);
+      }
+    };
+
+    window.addEventListener('focus', handleFocusOrVisible);
+    window.addEventListener('online', handleFocusOrVisible);
+    document.addEventListener('visibilitychange', handleFocusOrVisible);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('focus', handleFocusOrVisible);
+      window.removeEventListener('online', handleFocusOrVisible);
+      document.removeEventListener('visibilitychange', handleFocusOrVisible);
+    };
   }, [fetchPosts]);
 
   const getPostBySlug = (slug: string): Post | undefined => {

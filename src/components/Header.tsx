@@ -309,22 +309,44 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onNavigate, curren
           </div>
 
           <div className="border-t border-slate-800 pt-3 space-y-2">
+            {isAdmin && (
+              <button
+                onClick={() => handleNavClick('/admin/dashboard')}
+                className="w-full py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white rounded-lg text-xs font-bold text-center border border-amber-400 flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4 text-white" />
+                <span>Admin Control Center (Dashboard)</span>
+              </button>
+            )}
+
             {!user ? (
               <button
                 onClick={() => handleNavClick('/admin/login')}
-                className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg text-xs font-semibold text-center border border-amber-500/30 flex items-center justify-center gap-1.5"
+                className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg text-xs font-semibold text-center border border-amber-500/30 flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Lock className="w-3.5 h-3.5" />
                 <span>Admin Portal Login</span>
               </button>
             ) : (
-              <button
-                onClick={() => handleNavClick('/profile')}
-                className="w-full py-2 bg-slate-800 text-blue-300 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-2"
-              >
-                <Bookmark className="w-4 h-4" />
-                <span>My Saved Exams & Alerts</span>
-              </button>
+              <div className="space-y-1.5">
+                <button
+                  onClick={() => handleNavClick('/profile')}
+                  className="w-full py-2 bg-slate-800 text-blue-300 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Bookmark className="w-4 h-4" />
+                  <span>My Saved Exams & Alerts</span>
+                </button>
+                <button
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full py-2 bg-slate-800/80 hover:bg-rose-950 text-rose-300 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out ({user.name || user.email})</span>
+                </button>
+              </div>
             )}
           </div>
         </div>

@@ -100,6 +100,14 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Middleware to disable caching for API endpoints so cross-device updates reflect immediately
+  app.use('/api', (req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+  });
+
   // API Routes
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
@@ -180,7 +188,7 @@ async function startServer() {
     res.json(posts[postIndex]);
   });
 
-  // Create new post
+  // Create or Upsert post
   app.post('/api/posts', (req, res) => {
     const postData = req.body;
     if (!postData.title || !postData.category) {
@@ -188,23 +196,28 @@ async function startServer() {
     }
 
     const posts = loadPosts();
-    const newId = `post-${Date.now()}`;
+    const targetId = postData.id || `post-${Date.now()}`;
     const generatedSlug = postData.slug
       ? postData.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
       : postData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
     const newPost: Post = {
       ...postData,
-      id: newId,
+      id: targetId,
       slug: generatedSlug,
       status: postData.status || 'published',
-      views: 0,
-      createdAt: new Date().toISOString(),
+      views: postData.views || 0,
+      createdAt: postData.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       publishedAt: postData.publishedAt || new Date().toISOString(),
     };
 
-    posts.unshift(newPost);
+    const existingIdx = posts.findIndex(p => p.id === targetId || p.slug === generatedSlug);
+    if (existingIdx > -1) {
+      posts[existingIdx] = { ...posts[existingIdx], ...newPost };
+    } else {
+      posts.unshift(newPost);
+    }
     savePosts(posts);
 
     res.status(201).json(newPost);
@@ -215,10 +228,19 @@ async function startServer() {
     const { id } = req.params;
     const updateData = req.body;
     const posts = loadPosts();
-    const index = posts.findIndex(p => p.id === id);
+    const index = posts.findIndex(p => p.id === id || p.slug === id);
 
     if (index === -1) {
-      return res.status(404).json({ error: 'Post not found' });
+      // Auto-insert if not existing
+      const newPost: Post = {
+        ...updateData,
+        id,
+        updatedAt: new Date().toISOString(),
+        createdAt: updateData.createdAt || new Date().toISOString(),
+      };
+      posts.unshift(newPost);
+      savePosts(posts);
+      return res.json(newPost);
     }
 
     posts[index] = {
@@ -236,7 +258,7 @@ async function startServer() {
     const { id } = req.params;
     let posts = loadPosts();
     const initialLen = posts.length;
-    posts = posts.filter(p => p.id !== id);
+    posts = posts.filter(p => p.id !== id && p.slug !== id);
 
     if (posts.length === initialLen) {
       return res.status(404).json({ error: 'Post not found' });
