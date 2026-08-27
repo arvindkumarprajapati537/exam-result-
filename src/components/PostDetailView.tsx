@@ -199,14 +199,14 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
   const catMeta = getCategoryBadge();
 
   return (
-    <div className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 space-y-4">
+    <div className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-16 sm:pb-4">
       {/* 1. Breadcrumbs & Top Navigation Action Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 bg-white p-2.5 sm:p-3 rounded-xl border border-slate-200 shadow-2xs">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-blue-900 hover:text-blue-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition cursor-pointer"
+          className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-blue-900 hover:text-blue-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition cursor-pointer min-h-[36px]"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 shrink-0" />
           <span>Back to All Notices</span>
         </button>
 
@@ -214,28 +214,29 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             onClick={() => toggleFavorite(post.id)}
-            className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition cursor-pointer ${
+            className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition cursor-pointer min-h-[36px] ${
               saved
                 ? 'bg-amber-50 text-amber-700 border-amber-300 font-bold'
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
             <Bookmark className={`w-3.5 h-3.5 ${saved ? 'fill-amber-500 text-amber-500' : ''}`} />
-            <span>{saved ? 'Saved' : 'Save Notice'}</span>
+            <span>{saved ? 'Saved' : 'Save'}</span>
           </button>
 
           <button
             onClick={handleCopyLink}
-            className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
+            className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition cursor-pointer min-h-[36px]"
             title="Copy Page URL"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? 'Copied Link' : 'Copy URL'}</span>
+            <span className="hidden xs:inline">{copied ? 'Copied' : 'Copy Link'}</span>
+            <span className="xs:hidden">{copied ? 'Copied' : 'Copy'}</span>
           </button>
 
           <button
             onClick={printPage}
-            className="hidden sm:flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-800 text-white hover:bg-slate-700 transition shadow-2xs cursor-pointer"
+            className="hidden sm:flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-800 text-white hover:bg-slate-700 transition shadow-2xs cursor-pointer min-h-[36px]"
             title="Print Page / Save as PDF"
           >
             <Printer className="w-3.5 h-3.5" />
@@ -245,65 +246,65 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
       </div>
 
       {/* 2. Top Large Advertisement Space (Responsive Banner Placeholder) */}
-      <div className="w-full bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center">
-        <div className="flex flex-col items-center justify-center space-y-1">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+      <div className="w-full bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-3 sm:p-4 text-center">
+        <div className="flex flex-col items-center justify-center space-y-0.5 sm:space-y-1">
+          <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest">
             — Advertisement Space / Google AdSense Responsive Unit —
           </span>
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
             (Standard 728x90 Leaderboard / 320x100 Mobile Ad Zone for Live Portal Monetization)
           </p>
         </div>
       </div>
 
       {/* 3. Main Detail Document Container (Classic Indian Portal Table Theme) */}
-      <article className="bg-white rounded-xl border-2 border-slate-300 shadow-sm overflow-hidden p-4 sm:p-7 space-y-5">
+      <article className="bg-white rounded-xl border-2 border-slate-300 shadow-xs overflow-hidden p-3.5 sm:p-7 space-y-4 sm:space-y-5">
         
         {/* Top Post Info Section */}
-        <div className="space-y-3 pb-3 border-b-2 border-slate-200">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="space-y-2.5 sm:space-y-3 pb-3 border-b-2 border-slate-200">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <span
-              className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3 py-0.5 rounded-full border ${catMeta.bg}`}
+              className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 sm:px-3 py-0.5 rounded-full border ${catMeta.bg}`}
             >
               {catMeta.icon}
               <span>{categoryLabel}</span>
             </span>
 
-            <span className="bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold px-2.5 py-0.5 rounded">
+            <span className="bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold px-2 py-0.5 rounded">
               {post.stateOrCentral || 'All India'}
             </span>
 
             {post.totalVacancies && (
-              <span className="bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-bold px-2.5 py-0.5 rounded">
+              <span className="bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-bold px-2 py-0.5 rounded">
                 Vacancies: {post.totalVacancies}
               </span>
             )}
           </div>
 
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#0000cc] font-serif leading-tight">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-[#0000cc] font-serif leading-tight break-words">
             {postTitle}
           </h1>
 
           {/* Post Date & Update Date Row */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 font-medium pt-1">
+          <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 text-xs text-slate-600 font-medium pt-0.5">
             <span className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" />
-              <strong>Post Date:</strong> {formattedPostDate}
+              <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span><strong>Post Date:</strong> {formattedPostDate}</span>
             </span>
             <span className="text-slate-300 hidden sm:inline">|</span>
             <span className="flex items-center gap-1 text-red-600 font-semibold">
-              <Clock className="w-3.5 h-3.5 text-red-500" />
-              <strong>Update Date:</strong> {formattedUpdateDate}
+              <Clock className="w-3.5 h-3.5 text-red-500 shrink-0" />
+              <span><strong>Update Date:</strong> {formattedUpdateDate}</span>
             </span>
             <span className="text-slate-300 hidden sm:inline">|</span>
             <span className="flex items-center gap-1 text-slate-500">
-              <Building2 className="w-3.5 h-3.5 text-slate-400" />
-              {organizationName}
+              <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span className="truncate max-w-[200px] sm:max-w-none">{organizationName}</span>
             </span>
           </div>
 
           {/* Short Information Summary Box */}
-          <div className="p-3.5 sm:p-4 rounded-lg bg-amber-50/70 border border-amber-200 text-slate-800 text-xs sm:text-sm leading-relaxed">
+          <div className="p-3 sm:p-4 rounded-lg bg-amber-50/70 border border-amber-200 text-slate-800 text-xs sm:text-sm leading-relaxed">
             <p className="font-bold text-amber-950 mb-1">
               <span className="text-red-600 mr-1">Short Information :</span>
               {organizationName} has issued official recruitment / examination notification for{' '}
@@ -324,64 +325,57 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
         {/* 4. Social Share Buttons Ribbon */}
         <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-2">
           <span className="text-xs font-bold text-slate-700 flex items-center gap-1">
-            <Share2 className="w-3.5 h-3.5 text-blue-600" />
-            <span>Share with Friends :</span>
+            <Share2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+            <span>Share Notice :</span>
           </span>
 
           <div className="flex flex-wrap items-center gap-1.5 text-xs font-bold">
             <button
               onClick={handleShareWhatsapp}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded transition flex items-center gap-1 cursor-pointer"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded transition flex items-center gap-1 cursor-pointer min-h-[30px]"
             >
               <span>WhatsApp</span>
             </button>
             <button
               onClick={handleShareTelegram}
-              className="bg-sky-500 hover:bg-sky-600 text-white px-2.5 py-1 rounded transition flex items-center gap-1 cursor-pointer"
+              className="bg-sky-500 hover:bg-sky-600 text-white px-2.5 py-1 rounded transition flex items-center gap-1 cursor-pointer min-h-[30px]"
             >
               <Send className="w-3 h-3" />
               <span>Telegram</span>
             </button>
             <button
               onClick={handleShareFacebook}
-              className="bg-blue-700 hover:bg-blue-800 text-white px-2.5 py-1 rounded transition cursor-pointer"
+              className="bg-blue-700 hover:bg-blue-800 text-white px-2.5 py-1 rounded transition cursor-pointer min-h-[30px] hidden xs:inline-block"
             >
               Facebook
             </button>
             <button
               onClick={handleShareTwitter}
-              className="bg-slate-900 hover:bg-black text-white px-2.5 py-1 rounded transition cursor-pointer"
+              className="bg-slate-900 hover:bg-black text-white px-2.5 py-1 rounded transition cursor-pointer min-h-[30px]"
             >
-              X / Twitter
-            </button>
-            <button
-              onClick={handleCopyLink}
-              className="bg-slate-200 hover:bg-slate-300 text-slate-800 px-2.5 py-1 rounded transition flex items-center gap-1 cursor-pointer"
-            >
-              <Copy className="w-3 h-3" />
-              <span>{copied ? 'Copied' : 'Copy'}</span>
+              𝕏 Post
             </button>
           </div>
         </div>
 
         {/* 5. Main Post Information Box (Centered Bordered Portal Header Box) */}
-        <div className="border-2 border-red-700 bg-white rounded-lg p-3 sm:p-5 text-center space-y-2">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-black text-red-700 font-serif uppercase tracking-tight">
+        <div className="border-2 border-red-700 bg-white rounded-lg p-3 sm:p-5 text-center space-y-1.5 sm:space-y-2">
+          <h2 className="text-base sm:text-xl md:text-2xl font-black text-red-700 font-serif uppercase tracking-tight break-words">
             {organizationName}
           </h2>
-          <h3 className="text-base sm:text-lg font-extrabold text-[#0000cc] font-serif">
+          <h3 className="text-sm sm:text-lg font-extrabold text-[#0000cc] font-serif break-words">
             {postTitle}
           </h3>
-          <p className="text-xs sm:text-sm font-bold text-slate-800">
+          <p className="text-xs sm:text-sm font-bold text-slate-800 break-words">
             {advtNumber} | Short Details of Notification
           </p>
-          <div className="inline-block bg-red-700 text-white text-xs sm:text-sm font-extrabold tracking-wider px-4 py-1 rounded">
+          <div className="inline-block bg-red-700 text-white text-xs sm:text-sm font-extrabold tracking-wider px-3.5 py-1 rounded">
             WWW.EXAMRESULT.COM
           </div>
         </div>
 
         {/* 6. Important Dates & Application Fee Responsive Layout */}
-        <div className={`grid grid-cols-1 ${post.applicationFee?.enabled !== false && (post.applicationFee?.generalObc || post.applicationFee?.scSt) ? 'md:grid-cols-2' : ''} gap-4`}>
+        <div className={`grid grid-cols-1 ${post.applicationFee?.enabled !== false && (post.applicationFee?.generalObc || post.applicationFee?.scSt) ? 'md:grid-cols-2' : ''} gap-3 sm:gap-4`}>
           {/* Important Dates Column */}
           <div className="rounded-lg border-2 border-emerald-600 overflow-hidden bg-white">
             <div className="bg-emerald-700 text-white px-3.5 py-2 font-black text-sm uppercase tracking-wide font-serif flex items-center justify-between">
@@ -391,92 +385,92 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
               </span>
               <span className="text-[11px] font-sans font-normal text-emerald-100">Schedule</span>
             </div>
-            <div className="p-3.5 space-y-2 text-xs sm:text-sm">
+            <div className="p-3 sm:p-3.5 space-y-2 text-xs sm:text-sm">
               {post.importantDates?.applicationBegin && (
-                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 gap-2">
                   <span className="text-slate-700 font-medium">Application Begin :</span>
-                  <span className="font-bold text-slate-900">
+                  <span className="font-bold text-slate-900 text-right">
                     {post.importantDates.applicationBegin}
                   </span>
                 </div>
               )}
 
               {post.importantDates?.lastDate && (
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 bg-red-50/60 px-1.5 rounded">
-                  <span className="text-red-900 font-bold">Last Date for Apply Online :</span>
-                  <span className="font-extrabold text-red-700">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 bg-red-50/60 px-1.5 rounded gap-2">
+                  <span className="text-red-900 font-bold">Last Date for Apply :</span>
+                  <span className="font-extrabold text-red-700 text-right">
                     {post.importantDates.lastDate}
                   </span>
                 </div>
               )}
 
               {post.importantDates?.feePaymentLastDate && (
-                <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                  <span className="text-slate-700 font-medium">Last Date for Fee Payment :</span>
-                  <span className="font-bold text-slate-900">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 gap-2">
+                  <span className="text-slate-700 font-medium">Last Date for Fee :</span>
+                  <span className="font-bold text-slate-900 text-right">
                     {post.importantDates.feePaymentLastDate}
                   </span>
                 </div>
               )}
 
               {post.importantDates?.correctionDate && (
-                <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                  <span className="text-slate-700 font-medium">Correction Window Date :</span>
-                  <span className="font-bold text-slate-900">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 gap-2">
+                  <span className="text-slate-700 font-medium">Correction Window :</span>
+                  <span className="font-bold text-slate-900 text-right">
                     {post.importantDates.correctionDate}
                   </span>
                 </div>
               )}
 
               {post.importantDates?.examDate && (
-                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 gap-2">
                   <span className="text-slate-700 font-medium">Exam Date :</span>
-                  <span className="font-bold text-blue-900">
+                  <span className="font-bold text-blue-900 text-right">
                     {post.importantDates.examDate}
                   </span>
                 </div>
               )}
 
               {post.importantDates?.admitCardDate && (
-                <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                  <span className="text-slate-700 font-medium">Admit Card Available :</span>
-                  <span className="font-bold text-slate-900">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 gap-2">
+                  <span className="text-slate-700 font-medium">Admit Card Date :</span>
+                  <span className="font-bold text-slate-900 text-right">
                     {post.importantDates.admitCardDate}
                   </span>
                 </div>
               )}
 
               {post.importantDates?.answerKeyDate && (
-                <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                  <span className="text-slate-700 font-medium">Answer Key Available :</span>
-                  <span className="font-bold text-amber-700">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 gap-2">
+                  <span className="text-slate-700 font-medium">Answer Key Date :</span>
+                  <span className="font-bold text-amber-700 text-right">
                     {post.importantDates.answerKeyDate}
                   </span>
                 </div>
               )}
 
               {post.importantDates?.objectionLastDate && (
-                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 gap-2">
                   <span className="text-slate-700 font-medium">Objection Last Date :</span>
-                  <span className="font-bold text-red-700">
+                  <span className="font-bold text-red-700 text-right">
                     {post.importantDates.objectionLastDate}
                   </span>
                 </div>
               )}
 
               {post.importantDates?.resultDate && (
-                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 gap-2">
                   <span className="text-slate-700 font-medium">Result Available :</span>
-                  <span className="font-bold text-emerald-800">
+                  <span className="font-bold text-emerald-800 text-right">
                     {post.importantDates.resultDate}
                   </span>
                 </div>
               )}
 
               {post.importantDates?.customDates && post.importantDates.customDates.map(cd => (
-                <div key={cd.id} className="flex justify-between items-center py-1 border-b border-slate-100">
+                <div key={cd.id} className="flex justify-between items-center py-1 border-b border-slate-100 gap-2">
                   <span className="text-slate-700 font-medium">{cd.label} :</span>
-                  <span className="font-bold text-slate-900">{cd.value}</span>
+                  <span className="font-bold text-slate-900 text-right">{cd.value}</span>
                 </div>
               ))}
             </div>
@@ -494,29 +488,29 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
                   Fee Details
                 </span>
               </div>
-              <div className="p-3.5 space-y-2 text-xs sm:text-sm">
+              <div className="p-3 sm:p-3.5 space-y-2 text-xs sm:text-sm">
                 {post.applicationFee?.generalObc && (
-                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100 gap-2">
                     <span className="text-slate-700 font-medium">General / OBC / EWS :</span>
-                    <span className="font-bold text-slate-900">
+                    <span className="font-bold text-slate-900 text-right">
                       {post.applicationFee.generalObc}
                     </span>
                   </div>
                 )}
 
                 {post.applicationFee?.scSt && (
-                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100 gap-2">
                     <span className="text-slate-700 font-medium">SC / ST :</span>
-                    <span className="font-bold text-slate-900">
+                    <span className="font-bold text-slate-900 text-right">
                       {post.applicationFee.scSt}
                     </span>
                   </div>
                 )}
 
                 {post.applicationFee?.phFemale && (
-                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                    <span className="text-slate-700 font-medium">All Category Female / PH :</span>
-                    <span className="font-bold text-slate-900">{post.applicationFee.phFemale}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100 gap-2">
+                    <span className="text-slate-700 font-medium">Female / PH :</span>
+                    <span className="font-bold text-slate-900 text-right">{post.applicationFee.phFemale}</span>
                   </div>
                 )}
 
@@ -541,10 +535,10 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
 
         {/* 7. Age Limit Details Section (Optional) */}
         {post.ageLimit?.enabled !== false && (post.ageLimit?.minAge || post.ageLimit?.maxAge || post.ageLimit?.asOfDate) && (
-          <div className="rounded-lg border-2 border-emerald-600 bg-emerald-50/20 p-4">
+          <div className="rounded-lg border-2 border-emerald-600 bg-emerald-50/20 p-3 sm:p-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200 pb-2 mb-3">
-              <h3 className="text-sm sm:text-base font-black text-emerald-950 font-serif flex items-center gap-1.5">
-                <UserCheck className="w-4 h-4 text-emerald-700" />
+              <h3 className="text-xs sm:text-base font-black text-emerald-950 font-serif flex items-center gap-1.5">
+                <UserCheck className="w-4 h-4 text-emerald-700 shrink-0" />
                 <span>
                   {organizationName} : Age Limit as on {post.ageLimit?.asOfDate || '01/07/2026'}
                 </span>
@@ -552,25 +546,25 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
 
               <button
                 onClick={() => setShowAgeCalc(true)}
-                className="inline-flex items-center gap-1 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-1 rounded transition self-start sm:self-auto cursor-pointer"
+                className="inline-flex items-center gap-1 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-1 rounded transition self-start sm:self-auto cursor-pointer min-h-[32px]"
               >
                 <Calculator className="w-3.5 h-3.5" />
                 <span>Age Calculator</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs sm:text-sm">
               <div className="bg-white p-2.5 rounded border border-emerald-200">
                 <span className="text-slate-500 block text-xs">Minimum Age :</span>
                 <span className="font-bold text-slate-900 text-sm">
-                  {post.ageLimit?.minAge ? `${post.ageLimit.minAge} Years.` : '18 Years (or as per rules)'}
+                  {post.ageLimit?.minAge ? `${post.ageLimit.minAge} Years.` : '18 Years (as per rules)'}
                 </span>
               </div>
 
               <div className="bg-white p-2.5 rounded border border-emerald-200">
                 <span className="text-slate-500 block text-xs">Maximum Age :</span>
                 <span className="font-bold text-slate-900 text-sm">
-                  {post.ageLimit?.maxAge ? `${post.ageLimit.maxAge} Years.` : 'No Upper Limit / As per Post'}
+                  {post.ageLimit?.maxAge ? `${post.ageLimit.maxAge} Years.` : 'As per Post Rules'}
                 </span>
               </div>
 
@@ -585,23 +579,23 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
           </div>
         )}
 
-        {/* 8. Vacancy Details Section (Bordered Portal Table) */}
+        {/* 8. Vacancy Details Section (Bordered Portal Table with Responsive Horizontal Scroll) */}
         {post.vacancyDetails && post.vacancyDetails.length > 0 && (
           <div className="space-y-2">
-            <div className="bg-emerald-700 text-white px-3.5 py-2 rounded-t-lg font-black text-sm uppercase tracking-wide font-serif flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-emerald-200" />
-                EXAM RESULT Recruitment 2026 : Vacancy Details
+            <div className="bg-emerald-700 text-white px-3.5 py-2 rounded-t-lg font-black text-xs sm:text-sm uppercase tracking-wide font-serif flex items-center justify-between">
+              <span className="flex items-center gap-1.5 truncate">
+                <Users className="w-4 h-4 text-emerald-200 shrink-0" />
+                <span className="truncate">Vacancy & Eligibility Details</span>
               </span>
               {post.totalVacancies && (
-                <span className="text-xs font-bold bg-white text-emerald-900 px-2 py-0.5 rounded">
+                <span className="text-xs font-bold bg-white text-emerald-900 px-2 py-0.5 rounded shrink-0 ml-2">
                   Total : {post.totalVacancies}
                 </span>
               )}
             </div>
 
-            <div className="overflow-x-auto rounded-b-lg border-2 border-emerald-600 bg-white">
-              <table className="min-w-full divide-y-2 divide-slate-200 text-xs sm:text-sm text-left">
+            <div className="overflow-x-auto scrollbar-thin rounded-b-lg border-2 border-emerald-600 bg-white">
+              <table className="min-w-[500px] w-full divide-y-2 divide-slate-200 text-xs sm:text-sm text-left">
                 <thead className="bg-slate-100 text-slate-900 font-serif uppercase tracking-wider text-[11px]">
                   <tr>
                     <th className="py-2.5 px-3 border-r border-slate-200">Post Name</th>
@@ -634,7 +628,7 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
                           <span className="text-slate-500 italic">Category-wise reserved</span>
                         )}
                       </td>
-                      <td className="py-2.5 px-3 text-xs text-slate-800 leading-relaxed align-top">
+                      <td className="py-2.5 px-3 text-xs text-slate-800 leading-relaxed align-top min-w-[200px]">
                         {vac.eligibility}
                       </td>
                     </tr>
@@ -642,24 +636,25 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
                 </tbody>
               </table>
             </div>
+            <p className="text-[10px] text-slate-400 italic text-right sm:hidden">👉 Scroll table horizontally to view full columns</p>
           </div>
         )}
 
         {/* 9. Physical Eligibility Details Section (Conditional - Police / Defence / Constable / Security) */}
         {physicalDetailsToDisplay.length > 0 && (
           <div className="space-y-2">
-            <div className="bg-red-700 text-white px-3.5 py-2 rounded-t-lg font-black text-sm uppercase tracking-wide font-serif flex items-center justify-between">
+            <div className="bg-red-700 text-white px-3.5 py-2 rounded-t-lg font-black text-xs sm:text-sm uppercase tracking-wide font-serif flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-amber-300" />
-                Physical Eligibility Details
+                <Activity className="w-4 h-4 text-amber-300 shrink-0" />
+                <span>Physical Eligibility Standards</span>
               </span>
               <span className="text-[11px] font-sans font-normal text-amber-200">
-                PST / PET Standards
+                PST / PET
               </span>
             </div>
 
-            <div className="overflow-x-auto rounded-b-lg border-2 border-red-700 bg-white">
-              <table className="min-w-full divide-y-2 divide-slate-200 text-xs sm:text-sm text-left">
+            <div className="overflow-x-auto scrollbar-thin rounded-b-lg border-2 border-red-700 bg-white">
+              <table className="min-w-[480px] w-full divide-y-2 divide-slate-200 text-xs sm:text-sm text-left">
                 <thead className="bg-slate-100 text-slate-900 font-serif uppercase tracking-wider text-[11px]">
                   <tr>
                     <th className="py-2.5 px-3 border-r border-slate-200">Category / Parameter</th>
@@ -684,12 +679,13 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
                 </tbody>
               </table>
             </div>
+            <p className="text-[10px] text-slate-400 italic text-right sm:hidden">👉 Scroll table horizontally to view all standards</p>
           </div>
         )}
 
         {/* 10. Educational Eligibility Summary */}
         {post.eligibilitySummary && (
-          <div className="p-3.5 rounded-lg bg-blue-50/80 border border-blue-200 text-xs sm:text-sm space-y-1">
+          <div className="p-3 sm:p-3.5 rounded-lg bg-blue-50/80 border border-blue-200 text-xs sm:text-sm space-y-1">
             <span className="font-bold text-blue-950 block">Eligibility Summary :</span>
             <p className="text-slate-800 leading-relaxed">{post.eligibilitySummary}</p>
           </div>
@@ -697,9 +693,9 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
 
         {/* 11. How to Apply Section (Numbered List) */}
         {post.howToApply && post.howToApply.length > 0 && (
-          <div className="rounded-lg border-2 border-blue-700 bg-blue-50/20 p-4 sm:p-5 space-y-3">
-            <h3 className="text-sm sm:text-base font-black text-blue-950 font-serif flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-blue-700" />
+          <div className="rounded-lg border-2 border-blue-700 bg-blue-50/20 p-3.5 sm:p-5 space-y-2.5 sm:space-y-3">
+            <h3 className="text-xs sm:text-base font-black text-blue-950 font-serif flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-blue-700 shrink-0" />
               <span>How to Fill {postTitle} Online Form 2026</span>
             </h3>
             <ol className="space-y-2 text-xs sm:text-sm text-slate-800 list-decimal list-inside leading-relaxed">
@@ -713,17 +709,17 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
         )}
 
         {/* 12. Important Instructions Banner */}
-        <div className="bg-red-50 border-2 border-red-500 p-3.5 rounded-lg text-center text-xs sm:text-sm text-red-950 font-bold leading-relaxed space-y-1">
+        <div className="bg-red-50 border-2 border-red-500 p-3 sm:p-3.5 rounded-lg text-center text-xs sm:text-sm text-red-950 font-bold leading-relaxed space-y-1">
           <p className="text-red-700 uppercase tracking-wide">
             ★ {post.importantInstructions || `Interested Candidates Can Read the Full ${postTitle} Notification Before Apply Online`} ★
           </p>
         </div>
 
         {/* 13. Mobile Updates Promotion Section */}
-        <div className="bg-slate-900 text-white p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-slate-900 text-white p-3.5 sm:p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-0.5">
             <h4 className="text-xs sm:text-sm font-bold text-amber-300 flex items-center gap-1.5">
-              <Radio className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+              <Radio className="w-3.5 h-3.5 text-red-400 animate-pulse shrink-0" />
               <span>Get Free EXAM RESULT Updates on Your Phone</span>
             </h4>
             <p className="text-xs text-slate-300">
@@ -735,7 +731,7 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
               href="https://whatsapp.com/channel/0029VbDExHh8fewu2xmVj03M"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded transition"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded transition min-h-[36px] flex items-center"
             >
               WhatsApp
             </a>
@@ -743,7 +739,7 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
               href="https://t.me/examresult0156"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-sky-500 hover:bg-sky-400 text-white text-xs font-bold px-3 py-1.5 rounded transition"
+              className="bg-sky-500 hover:bg-sky-400 text-white text-xs font-bold px-3 py-1.5 rounded transition min-h-[36px] flex items-center"
             >
               Telegram
             </a>
@@ -751,7 +747,7 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
               href="https://www.youtube.com/@Arvindofficial345"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded transition"
+              className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded transition min-h-[36px] flex items-center"
             >
               YouTube
             </a>
@@ -764,7 +760,7 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
             Useful Important Links
           </div>
 
-          <div className="overflow-x-auto rounded-b-lg border-2 border-red-700 bg-white">
+          <div className="overflow-x-auto scrollbar-thin rounded-b-lg border-2 border-red-700 bg-white">
             <table className="min-w-full divide-y divide-slate-200 text-xs sm:text-sm">
               <tbody className="divide-y divide-slate-200">
                 {post.importantLinks && post.importantLinks.filter(l => l.enabled !== false && l.url && l.url.trim() !== '#' && l.url.trim() !== '').length > 0 ? (
@@ -772,8 +768,8 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
                     .filter(l => l.enabled !== false && l.url && l.url.trim() !== '#' && l.url.trim() !== '')
                     .map((lnk, idx) => (
                     <tr key={lnk.id || idx} className="hover:bg-red-50/30 transition">
-                      <td className="py-2.5 px-3.5 font-extrabold text-slate-900 border-r border-slate-200">
-                        <div className="flex items-center gap-1.5">
+                      <td className="py-2.5 px-3 sm:px-3.5 font-extrabold text-slate-900 border-r border-slate-200">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-red-600 font-black">•</span>
                           <span>{lnk.label}</span>
                           {lnk.badge && (
@@ -783,15 +779,15 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
                           )}
                         </div>
                       </td>
-                      <td className="py-2.5 px-3.5 text-center whitespace-nowrap w-[150px]">
+                      <td className="py-2.5 px-3 sm:px-3.5 text-center whitespace-nowrap w-[130px] sm:w-[150px]">
                         <a
                           href={lnk.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 bg-[#0000cc] hover:bg-red-600 text-white font-extrabold text-xs px-4 py-1.5 rounded shadow-xs transition"
+                          className="inline-flex items-center justify-center gap-1 bg-[#0000cc] hover:bg-red-600 text-white font-extrabold text-xs px-3 sm:px-4 py-1.5 rounded shadow-xs transition min-h-[34px]"
                         >
                           <span>Click Here</span>
-                          <ExternalLink className="w-3 h-3" />
+                          <ExternalLink className="w-3 h-3 shrink-0" />
                         </a>
                       </td>
                     </tr>
@@ -806,7 +802,7 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
                         href={post.officialWebsite || 'https://gov.in'}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 bg-[#0000cc] text-white font-bold text-xs px-4 py-1.5 rounded"
+                        className="inline-flex items-center gap-1 bg-[#0000cc] text-white font-bold text-xs px-4 py-1.5 rounded min-h-[34px]"
                       >
                         <span>Click Here</span>
                         <ExternalLink className="w-3 h-3" />
@@ -818,21 +814,21 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
                 {/* Additional Official Website Row */}
                 {post.officialWebsite && (
                   <tr className="hover:bg-slate-50 transition bg-slate-50/50">
-                    <td className="py-2.5 px-3.5 font-extrabold text-slate-900 border-r border-slate-200">
+                    <td className="py-2.5 px-3 sm:px-3.5 font-extrabold text-slate-900 border-r border-slate-200">
                       <div className="flex items-center gap-1.5">
-                        <Globe className="w-3.5 h-3.5 text-blue-600" />
+                        <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                         <span>Official Website</span>
                       </div>
                     </td>
-                    <td className="py-2.5 px-3.5 text-center whitespace-nowrap">
+                    <td className="py-2.5 px-3 sm:px-3.5 text-center whitespace-nowrap">
                       <a
                         href={post.officialWebsite}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 bg-slate-800 hover:bg-black text-white font-bold text-xs px-4 py-1.5 rounded transition"
+                        className="inline-flex items-center justify-center gap-1 bg-slate-800 hover:bg-black text-white font-bold text-xs px-3 sm:px-4 py-1.5 rounded transition min-h-[34px]"
                       >
                         <span>Click Here</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3 h-3 shrink-0" />
                       </a>
                     </td>
                   </tr>
@@ -845,7 +841,7 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
         {/* 15. Disclaimer Notice */}
         <div className="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-lg text-xs text-amber-900 leading-relaxed">
           <p className="font-bold flex items-center gap-1 mb-0.5">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
             Candidate Advisory :
           </p>
           <p>
@@ -854,11 +850,52 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
         </div>
       </article>
 
+      {/* Sticky Mobile Action Bar for candidates */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-300 p-2.5 shadow-xl flex items-center justify-between gap-2">
+        <button
+          onClick={onBack}
+          className="p-2 rounded-lg bg-slate-100 text-slate-700 font-bold text-xs flex items-center gap-1 min-h-[40px] shrink-0"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
+
+        {post.importantLinks && post.importantLinks.find(l => l.enabled !== false && l.url && l.url !== '#') ? (
+          <a
+            href={post.importantLinks.find(l => l.enabled !== false && l.url && l.url !== '#')?.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2 px-3 rounded-lg text-center flex items-center justify-center gap-1.5 shadow-sm min-h-[40px]"
+          >
+            <span>{post.importantLinks.find(l => l.enabled !== false && l.url && l.url !== '#')?.label || 'Open Important Link'}</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        ) : post.officialWebsite ? (
+          <a
+            href={post.officialWebsite}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bg-[#0000cc] hover:bg-blue-800 text-white font-bold text-xs py-2 px-3 rounded-lg text-center flex items-center justify-center gap-1.5 shadow-sm min-h-[40px]"
+          >
+            <span>Visit Official Site</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        ) : null}
+
+        <button
+          onClick={handleShareWhatsapp}
+          className="p-2 rounded-lg bg-emerald-600 text-white font-bold text-xs flex items-center justify-center min-h-[40px] min-w-[40px] shrink-0"
+          title="Share on WhatsApp"
+        >
+          <Send className="w-4 h-4" />
+        </button>
+      </div>
+
       {/* 16. Related Posts / Recommended Updates Grid */}
       {relatedPosts.length > 0 && (
-        <section className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
-          <h3 className="text-sm sm:text-base font-black text-slate-900 font-serif flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-amber-500" />
+        <section className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs space-y-2.5 sm:space-y-3">
+          <h3 className="text-xs sm:text-base font-black text-slate-900 font-serif flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
             <span>More Examinations & Results You May Be Interested In</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -877,14 +914,14 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
                   </h4>
                 </div>
                 <div className="mt-2 pt-1.5 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-500">
-                  <span className="text-red-600 font-semibold">
+                  <span className="text-red-600 font-semibold truncate max-w-[180px]">
                     {rel.importantDates?.lastDate
                       ? `Last Date: ${rel.importantDates.lastDate}`
                       : rel.importantDates?.examDate
                       ? `Exam: ${rel.importantDates.examDate}`
                       : 'Active'}
                   </span>
-                  <span className="font-bold text-blue-800">View Details →</span>
+                  <span className="font-bold text-blue-800 shrink-0 ml-1">View Details →</span>
                 </div>
               </div>
             ))}

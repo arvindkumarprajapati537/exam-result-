@@ -9,14 +9,14 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
   return (
-    <nav className="bg-blue-950 text-white shadow-md border-b-2 border-amber-500 hidden lg:block sticky top-[92px] z-30">
+    <nav className="bg-blue-950 text-white shadow-md border-b-2 border-amber-500 hidden lg:block sticky top-[80px] sm:top-[90px] z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-1 overflow-x-auto py-1">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center space-x-1 overflow-x-auto scrollbar-thin py-1 min-w-0">
             {/* Home Tab */}
             <button
               onClick={() => onNavigate('/')}
-              className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-t-md text-xs uppercase font-bold tracking-wider transition ${
+              className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-t-md text-xs uppercase font-bold tracking-wider transition shrink-0 cursor-pointer ${
                 currentRoute === '/'
                   ? 'bg-amber-500 text-slate-950 shadow-inner'
                   : 'text-slate-200 hover:bg-blue-900 hover:text-white'
@@ -33,7 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                 <button
                   key={cat.id}
                   onClick={() => onNavigate(`/${cat.slug}`)}
-                  className={`px-3 py-2.5 text-xs uppercase font-bold tracking-wide transition relative rounded-t-md whitespace-nowrap ${
+                  className={`px-3 py-2.5 text-xs uppercase font-bold tracking-wide transition relative rounded-t-md whitespace-nowrap shrink-0 cursor-pointer ${
                     isActive
                       ? 'bg-white text-blue-950 shadow-sm'
                       : 'text-slate-200 hover:bg-blue-900 hover:text-white'
@@ -56,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
           </div>
 
           {/* Quick Notice Tag */}
-          <div className="flex items-center text-xs font-semibold text-amber-300 gap-1.5 bg-blue-900/60 px-3 py-1 rounded-full border border-amber-400/30">
+          <div className="hidden xl:flex items-center text-xs font-semibold text-amber-300 gap-1.5 bg-blue-900/60 px-3 py-1 rounded-full border border-amber-400/30 shrink-0">
             <Flame className="w-3.5 h-3.5 text-amber-400" />
             <span className="text-[11px]">Government Job Alerts 2026</span>
           </div>

@@ -273,7 +273,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onSelectPost, 
 
   if (!user) {
     return (
-      <div className="max-w-md mx-auto px-4 py-16 text-center space-y-4">
+      <div className="max-w-md mx-auto px-4 py-12 sm:py-16 text-center space-y-4">
         <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
           <User className="w-6 h-6" />
         </div>
@@ -283,7 +283,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onSelectPost, 
         </p>
         <button
           onClick={() => onNavigate('/login')}
-          className="px-5 py-2.5 bg-blue-900 text-white font-bold rounded-lg text-xs shadow-xs"
+          className="px-5 py-2.5 bg-blue-900 text-white font-bold rounded-lg text-xs shadow-xs min-h-[40px] cursor-pointer"
         >
           Sign In Now
         </button>
@@ -295,16 +295,16 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onSelectPost, 
   const savedPosts = posts.filter(p => savedPostIds.includes(p.id));
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6">
       {/* Profile Card Header */}
-      <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-blue-900 text-white flex items-center justify-center text-2xl font-black font-serif shadow-xs">
+      <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-8 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-blue-900 text-white flex items-center justify-center text-xl sm:text-2xl font-black font-serif shadow-xs shrink-0">
             {user.name.charAt(0).toUpperCase()}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-black text-slate-950 font-serif">
+              <h1 className="text-lg sm:text-2xl font-black text-slate-950 font-serif">
                 {user.name}
               </h1>
               <span className="bg-blue-100 text-blue-900 text-[10px] font-extrabold px-2 py-0.5 rounded uppercase">
@@ -318,11 +318,11 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onSelectPost, 
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           {user.role === 'admin' && (
             <button
               onClick={() => onNavigate('/admin/dashboard')}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black rounded-lg shadow-sm transition cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black rounded-lg shadow-sm transition cursor-pointer min-h-[36px]"
             >
               <ShieldCheck className="w-4 h-4" />
               <span>Admin Dashboard</span>
@@ -330,7 +330,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onSelectPost, 
           )}
           <button
             onClick={logout}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-lg border border-rose-200 transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-lg border border-rose-200 transition cursor-pointer min-h-[36px]"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
@@ -340,16 +340,16 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onSelectPost, 
 
       {/* Saved Bookmarks & Deadlines */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-black text-slate-900 font-serif flex items-center gap-2">
-            <Bookmark className="w-5 h-5 text-amber-500" />
-            <span>My Saved Examinations & Active Alerts ({savedPosts.length})</span>
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-base sm:text-lg font-black text-slate-900 font-serif flex items-center gap-2">
+            <Bookmark className="w-4 sm:w-5 h-4 sm:h-5 text-amber-500 shrink-0" />
+            <span>My Saved Examinations & Alerts ({savedPosts.length})</span>
           </h2>
-          <span className="text-xs text-slate-500">Click any card to view details</span>
+          <span className="text-[11px] sm:text-xs text-slate-500 hidden sm:inline">Click any card to view details</span>
         </div>
 
         {savedPosts.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center space-y-3">
             <Bookmark className="w-8 h-8 text-slate-300 mx-auto" />
             <h3 className="text-base font-bold text-slate-700">No saved exams yet</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -357,18 +357,18 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onSelectPost, 
             </p>
             <button
               onClick={() => onNavigate('/latest-jobs')}
-              className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-bold shadow-xs hover:bg-blue-800"
+              className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-bold shadow-xs hover:bg-blue-800 cursor-pointer min-h-[36px]"
             >
               Browse Latest Jobs
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {savedPosts.map(post => (
               <div
                 key={post.id}
                 onClick={() => onSelectPost(post.slug)}
-                className="bg-white rounded-xl border border-slate-200 hover:border-blue-400 p-4 shadow-2xs hover:shadow-md transition cursor-pointer group flex flex-col justify-between"
+                className="bg-white rounded-xl border border-slate-200 hover:border-blue-400 p-3.5 sm:p-4 shadow-2xs hover:shadow-md transition cursor-pointer group flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -380,28 +380,28 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onSelectPost, 
                         e.stopPropagation();
                         toggleFavorite(post.id);
                       }}
-                      className="text-rose-500 hover:text-rose-700 p-1"
+                      className="text-rose-500 hover:text-rose-700 p-1.5 min-h-[32px] min-w-[32px] flex items-center justify-center cursor-pointer"
                       title="Remove from saved"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <h3 className="font-bold text-sm text-slate-900 group-hover:text-blue-700 transition leading-snug line-clamp-2">
+                  <h3 className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-blue-700 transition leading-snug line-clamp-2">
                     {post.title}
                   </h3>
 
                   <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                    <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                    <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span className="truncate">{post.organization}</span>
                   </p>
                 </div>
 
                 <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                  <span className="font-medium text-slate-700">
+                  <span className="font-medium text-slate-700 text-[11px] sm:text-xs truncate">
                     Last Date: {post.importantDates.lastDate || 'Notified'}
                   </span>
-                  <span className="text-blue-700 font-bold flex items-center gap-0.5">
+                  <span className="text-blue-700 font-bold flex items-center gap-0.5 shrink-0">
                     View Details →
                   </span>
                 </div>

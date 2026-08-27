@@ -592,37 +592,37 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-4 sm:space-y-6">
       {/* 1. Top Admin Master Navigation Bar */}
-      <div className="bg-slate-900 text-white rounded-2xl p-5 shadow-md border-2 border-amber-500/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-md border-2 border-amber-500/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <span className="bg-amber-500 text-slate-950 text-[10px] font-black uppercase px-2 py-0.5 rounded">
               CMS Admin Control
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-[11px] sm:text-xs text-slate-400">
               Logged in as <strong className="text-white">{user.name}</strong> ({user.email})
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black font-serif text-white tracking-tight">
+          <h1 className="text-lg sm:text-2xl font-black font-serif text-white tracking-tight">
             EXAM RESULT Content Management System
           </h1>
         </div>
 
         {/* Global Tab Navigation Controls */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full md:w-auto">
           <button
             onClick={() => {
               setActiveTab('dashboard');
               onNavigate('/admin/dashboard');
             }}
-            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 min-h-[36px] ${
               activeTab === 'dashboard'
                 ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
             }`}
           >
-            <TrendingUp className="w-3.5 h-3.5" />
+            <TrendingUp className="w-3.5 h-3.5 shrink-0" />
             <span>Dashboard</span>
           </button>
 
@@ -631,44 +631,45 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               setActiveTab('posts');
               onNavigate('/admin/posts');
             }}
-            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 min-h-[36px] ${
               activeTab === 'posts'
                 ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
             }`}
           >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Manage All Posts ({posts.length})</span>
+            <Layers className="w-3.5 h-3.5 shrink-0" />
+            <span>Manage Posts ({posts.length})</span>
           </button>
 
           <button
             onClick={handleStartNewPost}
-            className={`px-4 py-2 rounded-lg text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-sm ${
+            className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-sm min-h-[36px] ${
               activeTab === 'new-post' && !editingPostId
                 ? 'bg-emerald-500 text-white font-black'
                 : 'bg-emerald-600 hover:bg-emerald-500 text-white'
             }`}
           >
-            <Plus className="w-4 h-4" />
-            <span>+ ADD NEW UPDATE</span>
+            <Plus className="w-4 h-4 shrink-0" />
+            <span>+ ADD NEW</span>
           </button>
 
           <button
             onClick={() => onNavigate('/admin/change-password')}
-            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 border border-slate-700"
+            className="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 border border-slate-700 min-h-[36px]"
             title="Change Admin Password"
           >
-            <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-            <span>Change Password</span>
+            <KeyRound className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="hidden sm:inline">Change Password</span>
+            <span className="sm:hidden">Password</span>
           </button>
 
           <button
             onClick={() => onNavigate('/')}
-            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1"
+            className="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1 min-h-[36px]"
             title="Open Public Portal"
           >
-            <Globe className="w-3.5 h-3.5" />
-            <span>View Website</span>
+            <Globe className="w-3.5 h-3.5 shrink-0" />
+            <span>Live Site</span>
           </button>
 
           <button
@@ -676,7 +677,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               logout();
               onNavigate('/admin/login');
             }}
-            className="p-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 hover:text-white rounded-lg transition cursor-pointer"
+            className="p-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 hover:text-white rounded-lg transition cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
             title="Sign Out Admin"
           >
             <LogOut className="w-4 h-4" />
@@ -882,33 +883,33 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-xs sm:text-sm text-left">
+            <div className="overflow-x-auto scrollbar-thin">
+              <table className="w-full min-w-[640px] divide-y divide-slate-200 text-xs sm:text-sm text-left">
                 <thead className="bg-slate-100 text-slate-800 uppercase font-serif text-[11px] tracking-wider">
                   <tr>
-                    <th className="py-2.5 px-4">Post Title & Department</th>
-                    <th className="py-2.5 px-3">Category</th>
-                    <th className="py-2.5 px-3 text-center">Status</th>
-                    <th className="py-2.5 px-3">Publish Date</th>
-                    <th className="py-2.5 px-4 text-right">Actions</th>
+                    <th className="py-2.5 px-3 sm:px-4">Post Title & Department</th>
+                    <th className="py-2.5 px-2.5 sm:px-3">Category</th>
+                    <th className="py-2.5 px-2.5 sm:px-3 text-center">Status</th>
+                    <th className="py-2.5 px-2.5 sm:px-3">Publish Date</th>
+                    <th className="py-2.5 px-3 sm:px-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {recentPosts.map(post => (
                     <tr key={post.id} className="hover:bg-slate-50/80 transition">
-                      <td className="py-3 px-4">
+                      <td className="py-2.5 sm:py-3 px-3 sm:px-4 max-w-xs">
                         <div className="font-bold text-slate-900 line-clamp-1">{post.title}</div>
                         <div className="text-xs text-slate-500 flex items-center gap-1">
-                          <Building2 className="w-3 h-3 text-slate-400" />
-                          <span>{post.organization}</span>
+                          <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span className="truncate">{post.organization}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-3">
+                      <td className="py-2.5 sm:py-3 px-2.5 sm:px-3 whitespace-nowrap">
                         <span className={`inline-block text-[11px] font-bold px-2 py-0.5 rounded border capitalize ${getCategoryBadgeClass(post.category)}`}>
                           {post.category.replace(/-/g, ' ')}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-center">
+                      <td className="py-2.5 sm:py-3 px-2.5 sm:px-3 text-center whitespace-nowrap">
                         <span
                           className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
                             post.status === 'published'
@@ -920,21 +921,21 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           <span className="capitalize">{post.status}</span>
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-xs text-slate-600 whitespace-nowrap">
+                      <td className="py-2.5 sm:py-3 px-2.5 sm:px-3 text-xs text-slate-600 whitespace-nowrap">
                         {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-IN') : 'Recent'}
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-2.5 sm:py-3 px-3 sm:px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleEditClick(post)}
-                            className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition cursor-pointer"
+                            className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
                             title="Edit Post"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleToggleStatus(post)}
-                            className={`px-2 py-1 text-[10px] font-extrabold rounded transition cursor-pointer ${
+                            className={`px-2.5 py-1 text-[10px] sm:text-[11px] font-extrabold rounded transition cursor-pointer min-h-[32px] ${
                               post.status === 'published'
                                 ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                                 : 'bg-emerald-600 hover:bg-emerald-700 text-white'
@@ -946,7 +947,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           {post.status === 'published' && (
                             <button
                               onClick={() => onSelectPost(post.slug)}
-                              className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition cursor-pointer"
+                              className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
                               title="View Public Post"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -954,7 +955,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           )}
                           <button
                             onClick={() => setPostToDelete(post)}
-                            className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg transition cursor-pointer"
+                            className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg transition cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
                             title="Delete Post"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1040,39 +1041,39 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
           {/* Posts Management Table */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-xs sm:text-sm text-left">
+            <div className="overflow-x-auto scrollbar-thin">
+              <table className="w-full min-w-[700px] divide-y divide-slate-200 text-xs sm:text-sm text-left">
                 <thead className="bg-slate-100 text-slate-800 uppercase font-serif text-[11px] tracking-wider">
                   <tr>
-                    <th className="py-3 px-4">Post Title & Department</th>
-                    <th className="py-3 px-3">Category</th>
-                    <th className="py-3 px-3 text-center">Status</th>
-                    <th className="py-3 px-3 text-center">Views</th>
-                    <th className="py-3 px-3">Date</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
+                    <th className="py-3 px-3 sm:px-4">Post Title & Department</th>
+                    <th className="py-3 px-2.5 sm:px-3">Category</th>
+                    <th className="py-3 px-2.5 sm:px-3 text-center">Status</th>
+                    <th className="py-3 px-2.5 sm:px-3 text-center">Views</th>
+                    <th className="py-3 px-2.5 sm:px-3">Date</th>
+                    <th className="py-3 px-3 sm:px-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {filteredPosts.length > 0 ? (
                     filteredPosts.map(post => (
                       <tr key={post.id} className="hover:bg-slate-50/80 transition">
-                        <td className="py-3 px-4 max-w-md">
+                        <td className="py-3 px-3 sm:px-4 max-w-xs sm:max-w-md">
                           <div className="font-bold text-slate-900 leading-snug">{post.title}</div>
-                          <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                          <div className="text-xs text-slate-500 flex flex-wrap items-center gap-1.5 mt-0.5">
                             <span className="flex items-center gap-1">
-                              <Building2 className="w-3 h-3 text-slate-400" />
-                              <span>{post.organization}</span>
+                              <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span className="truncate">{post.organization}</span>
                             </span>
                             <span className="text-slate-300">•</span>
-                            <span className="font-mono text-[11px] text-slate-400">/post/{post.slug}</span>
+                            <span className="font-mono text-[11px] text-slate-400 truncate max-w-[160px]">/post/{post.slug}</span>
                           </div>
                         </td>
-                        <td className="py-3 px-3 whitespace-nowrap">
+                        <td className="py-3 px-2.5 sm:px-3 whitespace-nowrap">
                           <span className={`inline-block text-[11px] font-bold px-2 py-0.5 rounded border capitalize ${getCategoryBadgeClass(post.category)}`}>
                             {post.category.replace(/-/g, ' ')}
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-center whitespace-nowrap">
+                        <td className="py-3 px-2.5 sm:px-3 text-center whitespace-nowrap">
                           <span
                             className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
                               post.status === 'published'
@@ -1084,24 +1085,24 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                             <span className="capitalize">{post.status}</span>
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-center text-xs font-mono text-slate-600">
+                        <td className="py-3 px-2.5 sm:px-3 text-center text-xs font-mono text-slate-600">
                           {post.views || 0}
                         </td>
-                        <td className="py-3 px-3 text-xs text-slate-600 whitespace-nowrap">
+                        <td className="py-3 px-2.5 sm:px-3 text-xs text-slate-600 whitespace-nowrap">
                           {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-IN') : 'Recent'}
                         </td>
-                        <td className="py-3 px-4 text-right whitespace-nowrap">
+                        <td className="py-3 px-3 sm:px-4 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => handleEditClick(post)}
-                              className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition cursor-pointer"
+                              className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
                               title="Edit Post"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleToggleStatus(post)}
-                              className={`px-2.5 py-1 text-[11px] font-extrabold rounded transition cursor-pointer ${
+                              className={`px-2.5 py-1 text-[11px] font-extrabold rounded transition cursor-pointer min-h-[32px] ${
                                 post.status === 'published'
                                   ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                                   : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs'
@@ -1113,7 +1114,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                             {post.status === 'published' && (
                               <button
                                 onClick={() => onSelectPost(post.slug)}
-                                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition cursor-pointer"
+                                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
                                 title="View Public Post"
                               >
                                 <Eye className="w-4 h-4" />
@@ -1121,7 +1122,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                             )}
                             <button
                               onClick={() => setPostToDelete(post)}
-                              className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg transition cursor-pointer"
+                              className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg transition cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
                               title="Delete Post"
                             >
                               <Trash2 className="w-4 h-4" />

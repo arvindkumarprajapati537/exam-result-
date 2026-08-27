@@ -97,41 +97,41 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
       {/* Category Header Hero */}
       <div
-        className={`p-6 sm:p-8 rounded-2xl border-2 ${currentCategoryInfo.borderColor} bg-white shadow-xs space-y-2 relative overflow-hidden`}
+        className={`p-4 sm:p-8 rounded-2xl border-2 ${currentCategoryInfo.borderColor} bg-white shadow-xs space-y-2 relative overflow-hidden`}
       >
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
               <span
-                className={`text-xs font-black uppercase tracking-wider px-3 py-0.5 rounded-full ${currentCategoryInfo.badgeBg}`}
+                className={`text-[10px] sm:text-xs font-black uppercase tracking-wider px-2.5 sm:px-3 py-0.5 rounded-full ${currentCategoryInfo.badgeBg}`}
               >
                 Category Hub
               </span>
-              <span className="text-xs text-slate-500 font-semibold">
+              <span className="text-[11px] sm:text-xs text-slate-500 font-semibold">
                 Updated Daily • Official Direct Notices
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-950 font-serif">
+            <h1 className="text-xl sm:text-3xl font-black text-slate-950 font-serif">
               {currentCategoryInfo.name} 2026
             </h1>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
+            <p className="text-xs sm:text-sm text-slate-600 font-medium mt-0.5 sm:mt-1">
               {currentCategoryInfo.tagline}
             </p>
           </div>
 
-          <div className="bg-slate-100 p-3.5 rounded-xl border border-slate-200 text-center shrink-0">
-            <span className="text-xs text-slate-500 font-semibold block">Total Available</span>
-            <span className="text-2xl font-black text-blue-950">{filteredPosts.length}</span>
+          <div className="bg-slate-100 p-2.5 sm:p-3.5 rounded-xl border border-slate-200 text-center shrink-0 min-w-[90px]">
+            <span className="text-[11px] sm:text-xs text-slate-500 font-semibold block">Total Available</span>
+            <span className="text-xl sm:text-2xl font-black text-blue-950">{filteredPosts.length}</span>
           </div>
         </div>
       </div>
 
       {/* Filter and Search Toolbar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 shadow-xs space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           {/* Keyword Search */}
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -143,7 +143,7 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
                 setCurrentPage(1);
               }}
               placeholder="Filter by keyword / org..."
-              className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-medium"
+              className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-medium min-h-[40px]"
             />
           </div>
 
@@ -155,7 +155,7 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
                 setSelectedQualification(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-medium text-slate-700 bg-white"
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-medium text-slate-700 bg-white min-h-[40px]"
             >
               {QUALIFICATIONS.map(q => (
                 <option key={q} value={q}>
@@ -173,7 +173,7 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
                 setSelectedState(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-medium text-slate-700 bg-white"
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-medium text-slate-700 bg-white min-h-[40px]"
             >
               {STATES_AND_REGIONS.map(s => (
                 <option key={s} value={s}>
@@ -188,17 +188,17 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as any)}
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-medium text-slate-700 bg-white"
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600 font-medium text-slate-700 bg-white min-h-[40px]"
             >
               <option value="latest">Sort: Latest First</option>
               <option value="closing-soon">Sort: Deadline (Closing Soon)</option>
               <option value="popular">Sort: Most Viewed</option>
             </select>
 
-            <div className="flex items-center border border-slate-200 rounded-lg p-0.5 bg-slate-50 shrink-0">
+            <div className="flex items-center border border-slate-200 rounded-lg p-0.5 bg-slate-50 shrink-0 min-h-[40px]">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded ${
+                className={`p-2 rounded ${
                   viewMode === 'grid' ? 'bg-white text-blue-900 shadow-2xs' : 'text-slate-400'
                 }`}
                 title="Grid View"
@@ -207,7 +207,7 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-1.5 rounded ${
+                className={`p-2 rounded ${
                   viewMode === 'list' ? 'bg-white text-blue-900 shadow-2xs' : 'text-slate-400'
                 }`}
                 title="List View"
@@ -222,20 +222,20 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
         {(searchQuery ||
           selectedQualification !== 'All Qualifications' ||
           selectedState !== 'All India / Central') && (
-          <div className="flex items-center gap-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
             <span className="font-semibold">Active filters:</span>
             {searchQuery && (
-              <span className="bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">
+              <span className="bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200 truncate max-w-[150px]">
                 "{searchQuery}"
               </span>
             )}
             {selectedQualification !== 'All Qualifications' && (
-              <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200">
+              <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 truncate max-w-[150px]">
                 {selectedQualification}
               </span>
             )}
             {selectedState !== 'All India / Central' && (
-              <span className="bg-amber-50 text-amber-800 px-2 py-0.5 rounded border border-amber-200">
+              <span className="bg-amber-50 text-amber-800 px-2 py-0.5 rounded border border-amber-200 truncate max-w-[150px]">
                 {selectedState}
               </span>
             )}
@@ -245,7 +245,7 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
                 setSelectedQualification('All Qualifications');
                 setSelectedState('All India / Central');
               }}
-              className="text-rose-600 hover:underline font-bold ml-auto"
+              className="text-rose-600 hover:underline font-bold ml-auto cursor-pointer"
             >
               Clear All
             </button>
@@ -255,11 +255,11 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
 
       {/* Posts Cards Section */}
       {filteredPosts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3 shadow-xs">
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center space-y-3 shadow-xs">
           <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
             <Search className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-slate-800 font-serif">No Examination Notices Found</h3>
+          <h3 className="text-base sm:text-lg font-bold text-slate-800 font-serif">No Examination Notices Found</h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
             Try adjusting your search criteria, clearing qualification filters, or checking back soon for newly published government advertisements.
           </p>
@@ -269,7 +269,7 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
               setSelectedQualification('All Qualifications');
               setSelectedState('All India / Central');
             }}
-            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-bold shadow-xs hover:bg-blue-800 transition"
+            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-bold shadow-xs hover:bg-blue-800 transition min-h-[40px]"
           >
             Reset All Filters
           </button>
@@ -278,8 +278,8 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
         <div
           className={
             viewMode === 'grid'
-              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'
-              : 'space-y-4'
+              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5'
+              : 'space-y-3 sm:space-y-4'
           }
         >
           {currentPosts.map(post => (
@@ -290,18 +290,18 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-slate-200 pt-4 text-xs font-medium text-slate-600">
+        <div className="flex flex-col xs:flex-row items-center justify-between gap-3 border-t border-slate-200 pt-4 text-xs font-medium text-slate-600">
           <div>
             Showing {(currentPage - 1) * postsPerPage + 1} to{' '}
             {Math.min(currentPage * postsPerPage, filteredPosts.length)} of {filteredPosts.length}{' '}
             Notices
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-wrap">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="p-2 rounded-lg border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
+              className="p-2 rounded-lg border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 min-h-[36px]"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -323,7 +323,7 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="p-2 rounded-lg border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
+              className="p-2 rounded-lg border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 min-h-[36px]"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

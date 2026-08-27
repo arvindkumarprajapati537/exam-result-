@@ -14,13 +14,13 @@ import {
 
 export const AboutPage: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 sm:p-10 shadow-xs space-y-6">
-        <div className="border-b border-slate-200 pb-4">
-          <span className="text-xs font-black uppercase tracking-wider text-blue-900 bg-blue-50 px-3 py-1 rounded-full">
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6">
+      <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-8 sm:p-10 shadow-xs space-y-4 sm:space-y-6">
+        <div className="border-b border-slate-200 pb-3 sm:pb-4">
+          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-blue-900 bg-blue-50 px-3 py-1 rounded-full">
             Information Portal
           </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-950 font-serif mt-2">
+          <h1 className="text-xl sm:text-3xl font-black text-slate-950 font-serif mt-2">
             About EXAM RESULT
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium">
@@ -28,7 +28,7 @@ export const AboutPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+        <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
           <p>
             <strong>EXAM RESULT</strong> is a comprehensive, independently operated educational and career information platform founded to simplify government recruitment notices, examination schedules, admit cards, answer keys, and scorecards for millions of candidates across India.
           </p>
@@ -86,13 +86,13 @@ export const ContactPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 sm:p-10 shadow-xs space-y-6">
-        <div className="border-b border-slate-200 pb-4">
-          <span className="text-xs font-black uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full">
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6">
+      <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-8 sm:p-10 shadow-xs space-y-4 sm:space-y-6">
+        <div className="border-b border-slate-200 pb-3 sm:pb-4">
+          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full">
             Helpdesk & Support
           </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-950 font-serif mt-2">
+          <h1 className="text-xl sm:text-3xl font-black text-slate-950 font-serif mt-2">
             Contact Candidate Support
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium">
@@ -136,7 +136,7 @@ export const ContactPage: React.FC = () => {
           {/* Form */}
           <div className="md:col-span-2">
             {submitted ? (
-              <div className="bg-emerald-50 border-2 border-emerald-300 p-8 rounded-2xl text-center space-y-3">
+              <div className="bg-emerald-50 border-2 border-emerald-300 p-6 sm:p-8 rounded-2xl text-center space-y-3">
                 <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
                 <h3 className="text-lg font-bold text-emerald-950 font-serif">Message Received</h3>
                 <p className="text-xs text-emerald-800 max-w-md mx-auto">
@@ -150,7 +150,7 @@ export const ContactPage: React.FC = () => {
                     setSubject('');
                     setMessage('');
                   }}
-                  className="px-4 py-2 bg-emerald-700 text-white text-xs font-bold rounded-lg"
+                  className="px-4 py-2 bg-emerald-700 text-white text-xs font-bold rounded-lg cursor-pointer"
                 >
                   Send Another Inquiry
                 </button>
@@ -167,7 +167,7 @@ export const ContactPage: React.FC = () => {
                     value={name}
                     onChange={e => setName(e.target.value)}
                     placeholder="e.g. Priya Sharma"
-                    className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                    className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600 min-h-[40px]"
                   />
                 </div>
 
@@ -181,7 +181,7 @@ export const ContactPage: React.FC = () => {
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="priya@example.com"
-                    className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                    className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600 min-h-[40px]"
                   />
                 </div>
 
@@ -195,7 +195,7 @@ export const ContactPage: React.FC = () => {
                     value={subject}
                     onChange={e => setSubject(e.target.value)}
                     placeholder="e.g. Query regarding SSC CGL 2026 Admit Card Link"
-                    className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600"
+                    className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-600 min-h-[40px]"
                   />
                 </div>
 
@@ -215,7 +215,7 @@ export const ContactPage: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-bold rounded-lg text-xs sm:text-sm transition flex items-center justify-center gap-1.5 shadow-xs"
+                  className="w-full py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-bold rounded-lg text-xs sm:text-sm transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer min-h-[44px]"
                 >
                   <Send className="w-4 h-4" />
                   <span>Submit Inquiry</span>
@@ -231,13 +231,13 @@ export const ContactPage: React.FC = () => {
 
 export const PrivacyPolicyPage: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 sm:p-10 shadow-xs space-y-6">
-        <div className="border-b border-slate-200 pb-4">
-          <span className="text-xs font-black uppercase tracking-wider text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6">
+      <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-8 sm:p-10 shadow-xs space-y-4 sm:space-y-6">
+        <div className="border-b border-slate-200 pb-3 sm:pb-4">
+          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
             Legal & Compliance
           </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-950 font-serif mt-2">
+          <h1 className="text-xl sm:text-3xl font-black text-slate-950 font-serif mt-2">
             Privacy Policy
           </h1>
           <p className="text-xs sm:text-sm text-slate-500">
@@ -245,7 +245,7 @@ export const PrivacyPolicyPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+        <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
           <p>
             At <strong>EXAM RESULT</strong>, we respect candidate privacy and are committed to protecting any information shared with our website. This Privacy Policy explains our data collection, use, and security practices.
           </p>
@@ -277,13 +277,13 @@ export const PrivacyPolicyPage: React.FC = () => {
 
 export const DisclaimerPage: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 sm:p-10 shadow-xs space-y-6">
-        <div className="border-b border-slate-200 pb-4">
-          <span className="text-xs font-black uppercase tracking-wider text-rose-800 bg-rose-50 px-3 py-1 rounded-full">
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6">
+      <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-8 sm:p-10 shadow-xs space-y-4 sm:space-y-6">
+        <div className="border-b border-slate-200 pb-3 sm:pb-4">
+          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-rose-800 bg-rose-50 px-3 py-1 rounded-full">
             Official Advisory
           </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-950 font-serif mt-2">
+          <h1 className="text-xl sm:text-3xl font-black text-slate-950 font-serif mt-2">
             Legal Disclaimer & Terms of Use
           </h1>
           <p className="text-xs sm:text-sm text-slate-500">
@@ -291,10 +291,10 @@ export const DisclaimerPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
-          <div className="bg-rose-50 border-l-4 border-rose-600 p-4 rounded-r-xl text-rose-950">
-            <h3 className="font-bold flex items-center gap-1.5 mb-1">
-              <AlertTriangle className="w-4 h-4 text-rose-700" />
+        <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+          <div className="bg-rose-50 border-l-4 border-rose-600 p-3.5 sm:p-4 rounded-r-xl text-rose-950">
+            <h3 className="font-bold flex items-center gap-1.5 mb-1 text-xs sm:text-sm">
+              <AlertTriangle className="w-4 h-4 text-rose-700 shrink-0" />
               Not a Government Entity
             </h3>
             <p>

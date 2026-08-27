@@ -100,28 +100,28 @@ export const ContentBoxesGrid: React.FC<ContentBoxesGridProps> = ({ onSelectPost
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
       {/* 3-Column / 6-Box Portal Bulletin Architecture */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {BOX_CONFIGS.map(box => {
           const categoryPosts = getPostsForCategory(box.category);
 
           return (
             <div
               key={box.category}
-              className={`bg-white rounded-xl border-2 ${box.borderColor} shadow-sm overflow-hidden flex flex-col justify-between`}
+              className={`bg-white rounded-xl border-2 ${box.borderColor} shadow-xs overflow-hidden flex flex-col justify-between`}
             >
               {/* Box Header */}
-              <div className={`${box.headerBg} ${box.headerText} px-4 py-3 flex items-center justify-between shadow-xs`}>
-                <div className="flex items-center gap-2">
+              <div className={`${box.headerBg} ${box.headerText} px-3.5 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between shadow-xs`}>
+                <div className="flex items-center gap-2 min-w-0">
                   {box.icon}
-                  <h3 className="font-extrabold text-base tracking-wide uppercase font-serif">
+                  <h3 className="font-extrabold text-sm sm:text-base tracking-wide uppercase font-serif truncate">
                     {box.title}
                   </h3>
                 </div>
                 <button
                   onClick={() => onViewCategory(box.slug)}
-                  className="text-xs font-bold bg-black/20 hover:bg-black/40 text-white px-2.5 py-1 rounded transition flex items-center gap-1 cursor-pointer"
+                  className="text-xs font-bold bg-black/20 hover:bg-black/40 text-white px-2 sm:px-2.5 py-1 rounded transition flex items-center gap-1 cursor-pointer shrink-0 min-h-[32px]"
                 >
                   <span>View All</span>
                   <ArrowRight className="w-3 h-3" />
@@ -129,9 +129,9 @@ export const ContentBoxesGrid: React.FC<ContentBoxesGridProps> = ({ onSelectPost
               </div>
 
               {/* Items List */}
-              <div className="divide-y divide-slate-100 flex-1 min-h-[380px] overflow-y-auto">
+              <div className="divide-y divide-slate-100 flex-1 min-h-[260px] sm:min-h-[340px] max-h-[460px] overflow-y-auto scrollbar-thin">
                 {categoryPosts.length === 0 ? (
-                  <div className="p-8 text-center text-slate-400 text-sm">
+                  <div className="p-6 text-center text-slate-400 text-xs sm:text-sm">
                     No active notices right now.
                   </div>
                 ) : (
@@ -140,11 +140,11 @@ export const ContentBoxesGrid: React.FC<ContentBoxesGridProps> = ({ onSelectPost
                       <article
                         key={item.id}
                         onClick={() => onSelectPost(item.slug)}
-                        className="py-2.5 px-3 hover:bg-blue-50/60 transition cursor-pointer group flex flex-col justify-center"
+                        className="py-2 px-2.5 sm:px-3 hover:bg-blue-50/60 transition cursor-pointer group flex flex-col justify-center min-h-[42px]"
                       >
                         <div>
-                          <h4 className="text-[13.5px] sm:text-[14px] font-bold text-[#0000cc] group-hover:text-red-600 group-hover:underline transition leading-snug">
-                            <span className="text-red-600 mr-1.5 font-bold text-sm">
+                          <h4 className="text-[13px] sm:text-[14px] font-bold text-[#0000cc] group-hover:text-red-600 group-hover:underline transition leading-snug break-words">
+                            <span className="text-red-600 mr-1 font-bold text-sm select-none">
                               •
                             </span>
                             {item.title}
@@ -162,10 +162,10 @@ export const ContentBoxesGrid: React.FC<ContentBoxesGridProps> = ({ onSelectPost
               </div>
 
               {/* Box Footer Button */}
-              <div className="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
+              <div className="p-2 sm:p-2.5 bg-slate-50 border-t border-slate-100 text-center">
                 <button
                   onClick={() => onViewCategory(box.slug)}
-                  className="w-full py-1.5 text-xs font-bold text-slate-700 hover:text-blue-900 hover:bg-slate-200/70 rounded transition"
+                  className="w-full py-2 text-xs font-bold text-slate-700 hover:text-blue-900 hover:bg-slate-200/70 rounded-lg transition min-h-[38px] cursor-pointer"
                 >
                   Explore All {box.title} ({posts.filter(p => p.category === box.category).length}) →
                 </button>

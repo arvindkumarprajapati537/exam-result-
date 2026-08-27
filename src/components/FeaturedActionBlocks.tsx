@@ -29,17 +29,17 @@ export const FeaturedActionBlocks: React.FC<FeaturedActionBlocksProps> = ({
   const activeItems = publishedPosts.slice(0, 8);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+    <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-2">
         {activeItems.map((post, idx) => {
           const color = blockColors[idx % blockColors.length];
 
           // Format title to match the classic concise action headline style
           const actionText = post.category === 'results' 
             ? 'Check Result'
-            : post.category === 'admit-cards'
+            : post.category === 'admit-card'
             ? 'Download Admit Card'
-            : post.category === 'answer-keys'
+            : post.category === 'answer-key'
             ? 'Answer Key 2026'
             : 'Apply Online';
 
@@ -47,7 +47,7 @@ export const FeaturedActionBlocks: React.FC<FeaturedActionBlocksProps> = ({
             <button
               key={post.id}
               onClick={() => onSelectPost(post.slug)}
-              className={`${color.bg} text-white font-bold text-xs sm:text-[13px] leading-snug p-3 min-h-[58px] sm:min-h-[64px] flex items-center justify-center text-center transition-all duration-150 shadow-xs hover:shadow-md hover:brightness-105 active:scale-[0.99] cursor-pointer rounded-xs`}
+              className={`${color.bg} text-white font-bold text-xs sm:text-[13px] leading-snug p-2.5 sm:p-3 min-h-[50px] sm:min-h-[64px] flex items-center justify-center text-center transition-all duration-150 shadow-xs hover:shadow-md hover:brightness-105 active:scale-[0.99] cursor-pointer rounded-xs`}
             >
               <span className="line-clamp-2 drop-shadow-xs">
                 {post.title} {actionText}

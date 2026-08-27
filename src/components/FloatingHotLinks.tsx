@@ -24,67 +24,67 @@ export const FloatingHotLinks: React.FC<FloatingHotLinksProps> = ({
     : publishedPosts.slice(0, 8).reverse();
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-      <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-4 sm:p-6 text-center space-y-3 overflow-hidden">
+    <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2">
+      <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-3 sm:p-6 text-center space-y-2.5 sm:space-y-3 overflow-hidden">
         {/* Main Bold Portal Branding Title */}
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-[#0000cc] tracking-tight font-serif">
+        <h1 className="text-base sm:text-2xl md:text-3xl font-extrabold text-[#0000cc] tracking-tight font-serif break-words leading-snug">
           EXAM RESULT 2026 – ExamResult.in – Sarkari Job, Admit Card & Result Portal
         </h1>
 
         {/* Apps & Social Community Utility Row */}
-        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs sm:text-sm font-bold text-[#0000cc] pt-1">
+        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 text-xs sm:text-sm font-bold text-[#0000cc] pt-0.5">
           <a
             href="https://www.youtube.com/@Arvindofficial345"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-red-600 hover:underline transition flex items-center gap-1"
+            className="hover:text-red-600 hover:underline transition flex items-center gap-1 min-h-[32px]"
           >
-            <Youtube className="w-3.5 h-3.5 text-red-600 fill-current inline" />
-            <span>Youtube Updates</span>
+            <Youtube className="w-3.5 h-3.5 text-red-600 fill-current inline shrink-0" />
+            <span>Youtube</span>
           </a>
-          <span className="text-red-600 font-bold">||</span>
+          <span className="text-red-600 font-bold select-none">||</span>
 
           <a
             href="https://whatsapp.com/channel/0029VbDExHh8fewu2xmVj03M"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-red-600 hover:underline transition"
+            className="hover:text-red-600 hover:underline transition flex items-center min-h-[32px]"
           >
-            WhatsApp Alerts Channel
+            WhatsApp Alerts
           </a>
-          <span className="text-red-600 font-bold">||</span>
+          <span className="text-red-600 font-bold select-none">||</span>
 
           <a
             href="https://t.me/examresult0156"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-red-600 hover:underline transition flex items-center gap-1"
+            className="hover:text-red-600 hover:underline transition flex items-center gap-1 min-h-[32px]"
           >
-            <Send className="w-3.5 h-3.5 text-blue-500 inline" />
-            <span>Telegram Channel</span>
+            <Send className="w-3.5 h-3.5 text-blue-500 inline shrink-0" />
+            <span>Telegram</span>
           </a>
-          <span className="text-red-600 font-bold hidden sm:inline">||</span>
+          <span className="text-red-600 font-bold select-none">||</span>
 
           <a
             href="https://x.com/Arvindk29646455"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-red-600 hover:underline transition flex items-center gap-1"
+            className="hover:text-red-600 hover:underline transition flex items-center gap-1 min-h-[32px]"
           >
             <span>𝕏 Twitter</span>
           </a>
         </div>
 
         {/* Animated Moving / Floating Examination Link Tickers */}
-        <div className="pt-3 space-y-2.5 border-t border-slate-100 overflow-hidden">
+        <div className="pt-2 sm:pt-3 space-y-2 border-t border-slate-100 overflow-hidden max-w-full">
           {/* Row 1: Smoothly Moving Left (Right to Left) */}
-          <div className="relative w-full overflow-hidden whitespace-nowrap py-1 bg-slate-50/60 rounded-lg border border-slate-100">
+          <div className="relative w-full max-w-full overflow-hidden whitespace-nowrap py-1 bg-slate-50/60 rounded-lg border border-slate-100">
             <div className="animate-marquee-left flex items-center text-xs sm:text-[13.5px] font-bold text-[#0000cc]">
               {[...row1Posts, ...row1Posts].map((post, idx) => (
                 <div key={`r1-${post.id}-${idx}`} className="flex items-center shrink-0">
                   <button
                     onClick={() => onSelectPost(post.slug)}
-                    className="hover:text-red-600 hover:underline transition px-3 cursor-pointer"
+                    className="hover:text-red-600 hover:underline transition px-2.5 sm:px-3 cursor-pointer py-1"
                     title={post.title}
                   >
                     {post.title}
@@ -96,13 +96,13 @@ export const FloatingHotLinks: React.FC<FloatingHotLinksProps> = ({
           </div>
 
           {/* Row 2: Smoothly Moving Right (Left to Right) */}
-          <div className="relative w-full overflow-hidden whitespace-nowrap py-1 bg-slate-50/60 rounded-lg border border-slate-100">
+          <div className="relative w-full max-w-full overflow-hidden whitespace-nowrap py-1 bg-slate-50/60 rounded-lg border border-slate-100">
             <div className="animate-marquee-right flex items-center text-xs sm:text-[13.5px] font-bold text-[#0000cc]">
               {[...row2Posts, ...row2Posts].map((post, idx) => (
                 <div key={`r2-${post.id}-${idx}`} className="flex items-center shrink-0">
                   <button
                     onClick={() => onSelectPost(post.slug)}
-                    className="hover:text-red-600 hover:underline transition px-3 cursor-pointer"
+                    className="hover:text-red-600 hover:underline transition px-2.5 sm:px-3 cursor-pointer py-1"
                     title={post.title}
                   >
                     {post.title}
