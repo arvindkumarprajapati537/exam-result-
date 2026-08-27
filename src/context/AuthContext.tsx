@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, AuthState } from '../types';
+import { supabase } from '../lib/supabase';
+
+const PRIMARY_ADMIN_EMAIL = 'arvindkumarprajapati537@gmail.com';
 
 interface AuthContextType extends AuthState {
   login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
@@ -20,7 +23,7 @@ interface AuthContextType extends AuthState {
     confirmPass: string
   ) => Promise<{ success: boolean; message?: string; error?: string }>;
   register: (name: string, email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   toggleFavorite: (postId: string) => Promise<boolean>;
   isFavorite: (postId: string) => boolean;
 }
@@ -41,27 +44,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return localStorage.getItem('examresult_token');
   });
 
-  // Verify active session with backend on mount
+  // Sync state with active Supabase session and auth state listener
   useEffect(() => {
-    if (token) {
-      fetch('/api/auth/verify-session', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then(res => {
-          if (!res.ok) {
-            // Token is invalid/expired
-            if (user?.role === 'admin') {
-              setUser(null);
-              setToken(null);
-              localStorage.removeItem('examresult_user');
-              localStorage.removeItem('examresult_token');
-            }
-          }
-        })
-        .catch(() => {
-          // Ignore network errors on session check
-        });
-    }
+    let mounted = true;
+
+    // 1. Initial Session Check from Supabase
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!mounted) return;
+      if (error) {
+        console.warn('[Supabase Auth Session Check]:', error.message);
+        return;
+      }
+      if (data?.session?.user) {
+        const authUser = data.session.user;
+        const isAdmin =
+          authUser.email?.toLowerCase() === PRIMARY_ADMIN_EMAIL.toLowerCase() ||
+          authUser.user_metadata?.role === 'admin';
+
+        const updatedUser: User = {
+          id: authUser.id,
+          name: authUser.user_metadata?.name || (isAdmin ? 'Arvind Kumar Prajapati' : authUser.email?.split('@')[0] || 'User'),
+          email: authUser.email || '',
+          role: isAdmin ? 'admin' : 'user',
+          createdAt: authUser.created_at || new Date().toISOString(),
+          savedPostIds: [],
+        };
+        setUser(updatedUser);
+        setToken(data.session.access_token);
+      }
+    }).catch(err => {
+      console.warn('[Supabase getSession Error]:', err);
+    });
+
+    // 2. Real-time Auth State Change Listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      if (session?.user) {
+        const authUser = session.user;
+        const isAdmin =
+          authUser.email?.toLowerCase() === PRIMARY_ADMIN_EMAIL.toLowerCase() ||
+          authUser.user_metadata?.role === 'admin';
+
+        const updatedUser: User = {
+          id: authUser.id,
+          name: authUser.user_metadata?.name || (isAdmin ? 'Arvind Kumar Prajapati' : authUser.email?.split('@')[0] || 'User'),
+          email: authUser.email || '',
+          role: isAdmin ? 'admin' : 'user',
+          createdAt: authUser.created_at || new Date().toISOString(),
+          savedPostIds: [],
+        };
+        setUser(updatedUser);
+        setToken(session.access_token);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem('examresult_user');
+        localStorage.removeItem('examresult_token');
+      }
+    });
+
+    return () => {
+      mounted = false;
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -77,47 +122,142 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user, token]);
 
+  // Real Supabase Email/Password Login
   const login = async (email: string, pass: string) => {
     const cleanEmail = (email || '').toLowerCase().trim();
     const cleanPass = (pass || '').trim();
 
+    if (!cleanEmail || !cleanPass) {
+      return { success: false, error: 'Email and password are required.' };
+    }
+
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
+      // 1. Direct real authentication request to Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: cleanPass,
       });
-      const data = await res.json();
-      if (res.ok && data.user) {
-        setUser(data.user);
-        setToken(data.token);
+
+      if (error) {
+        console.error('[Supabase Auth Login Error]:', error.message, 'Status:', error.status);
+        // Also check if server fallback is available
+        try {
+          const serverRes = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
+          });
+          const serverData = await serverRes.json();
+          if (serverRes.ok && serverData.user) {
+            setUser(serverData.user);
+            setToken(serverData.token);
+            return { success: true };
+          }
+        } catch {}
+
+        return { success: false, error: error.message || 'Invalid email or password.' };
+      }
+
+      if (data?.user && data.session) {
+        const isAdmin =
+          data.user.email?.toLowerCase() === PRIMARY_ADMIN_EMAIL.toLowerCase() ||
+          data.user.user_metadata?.role === 'admin';
+
+        const authenticatedUser: User = {
+          id: data.user.id,
+          name: data.user.user_metadata?.name || (isAdmin ? 'Arvind Kumar Prajapati' : data.user.email?.split('@')[0] || 'User'),
+          email: data.user.email || cleanEmail,
+          role: isAdmin ? 'admin' : 'user',
+          createdAt: data.user.created_at || new Date().toISOString(),
+          savedPostIds: [],
+        };
+
+        setUser(authenticatedUser);
+        setToken(data.session.access_token);
         return { success: true };
       }
-      return { success: false, error: data.error || 'Invalid email or password.' };
+
+      return { success: false, error: 'Failed to create authenticated session.' };
     } catch (err: any) {
-      return { success: false, error: 'Network connection error. Please try again.' };
+      console.error('[Supabase Auth Exception]:', err);
+      return {
+        success: false,
+        error: err?.message || 'Authentication error connecting to Supabase Auth service.',
+      };
     }
   };
 
+  // Real Supabase Admin Email/Password Login
   const adminLogin = async (email: string, pass: string) => {
     const cleanEmail = (email || '').toLowerCase().trim();
     const cleanPass = (pass || '').trim();
 
+    if (!cleanEmail || !cleanPass) {
+      return { success: false, error: 'Email and password are required.' };
+    }
+
     try {
-      const res = await fetch('/api/auth/admin-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
+      // 1. Direct real authentication request to Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: cleanPass,
       });
-      const data = await res.json();
-      if (res.ok && data.user && data.user.role === 'admin') {
-        setUser(data.user);
-        setToken(data.token);
+
+      if (error) {
+        console.error('[Supabase Admin Login Error]:', error.message, 'Status:', error.status);
+
+        // Fallback to server verification if needed
+        try {
+          const serverRes = await fetch('/api/auth/admin-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
+          });
+          const serverData = await serverRes.json();
+          if (serverRes.ok && serverData.user && serverData.user.role === 'admin') {
+            setUser(serverData.user);
+            setToken(serverData.token);
+            return { success: true };
+          }
+        } catch {}
+
+        return { success: false, error: error.message || 'Invalid email or password.' };
+      }
+
+      if (data?.user && data.session) {
+        const isAdmin =
+          data.user.email?.toLowerCase() === PRIMARY_ADMIN_EMAIL.toLowerCase() ||
+          data.user.user_metadata?.role === 'admin';
+
+        if (!isAdmin) {
+          await supabase.auth.signOut();
+          return {
+            success: false,
+            error: 'Access Denied. You are not authorized to access the EXAM RESULT Admin Panel.',
+          };
+        }
+
+        const adminUser: User = {
+          id: data.user.id,
+          name: data.user.user_metadata?.name || 'Arvind Kumar Prajapati',
+          email: data.user.email || cleanEmail,
+          role: 'admin',
+          createdAt: data.user.created_at || new Date().toISOString(),
+          savedPostIds: [],
+        };
+
+        setUser(adminUser);
+        setToken(data.session.access_token);
         return { success: true };
       }
-      return { success: false, error: data.error || 'Invalid email or password.' };
+
+      return { success: false, error: 'Failed to establish administrator session.' };
     } catch (err: any) {
-      return { success: false, error: 'Network error communicating with authentication service.' };
+      console.error('[Admin Login Exception]:', err);
+      return {
+        success: false,
+        error: err?.message || 'Authentication error connecting to Supabase Auth service.',
+      };
     }
   };
 
@@ -152,7 +292,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     newPass: string,
     confirmPass: string
   ) => {
+    if (newPass !== confirmPass) {
+      return { success: false, error: 'New passwords do not match.' };
+    }
+
     try {
+      // Update in Supabase Auth directly
+      const { error: supaErr } = await supabase.auth.updateUser({
+        password: newPass,
+      });
+
+      if (supaErr) {
+        console.warn('[Supabase Password Update Notice]:', supaErr.message);
+      }
+
+      // Also update in server store for bidirectional consistency
       const activeToken = token || localStorage.getItem('examresult_token') || '';
       const res = await fetch('/api/auth/admin-change-password', {
         method: 'POST',
@@ -168,22 +322,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        // Require logging in again
-        logout();
+        await logout();
         return { success: true, message: data.message };
       }
-      return { success: false, error: data.error || 'Failed to change password.' };
+      return { success: false, error: data.error || supaErr?.message || 'Failed to change password.' };
     } catch (err: any) {
-      return { success: false, error: 'Network error communicating with server.' };
+      return { success: false, error: err?.message || 'Error communicating with server.' };
     }
   };
 
   const requestPasswordReset = async (email: string) => {
+    const cleanEmail = (email || '').trim();
     try {
+      // 1. Supabase Reset Email
+      await supabase.auth.resetPasswordForEmail(cleanEmail).catch(err => {
+        console.warn('[Supabase reset password notice]:', err?.message);
+      });
+
+      // 2. Server reset flow for interactive code
       const res = await fetch('/api/auth/admin-forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: cleanEmail }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -195,7 +355,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return { success: false, error: data.error || 'Failed to request reset.' };
     } catch (err: any) {
-      return { success: false, error: 'Network error requesting password reset.' };
+      return { success: false, error: 'Error requesting password reset.' };
     }
   };
 
@@ -218,55 +378,78 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        logout();
+        await logout();
         return { success: true, message: data.message };
       }
       return { success: false, error: data.error || 'Failed to reset password.' };
     } catch (err: any) {
-      return { success: false, error: 'Network error resetting password.' };
+      return { success: false, error: 'Error resetting password.' };
     }
   };
 
   const register = async (name: string, email: string, pass: string) => {
+    const cleanEmail = (email || '').toLowerCase().trim();
+    const cleanPass = (pass || '').trim();
+
     try {
+      // Try Supabase Sign Up
+      const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password: cleanPass,
+        options: {
+          data: { name, role: 'user' },
+        },
+      });
+
+      if (!error && data.user) {
+        const newUser: User = {
+          id: data.user.id,
+          name,
+          email: cleanEmail,
+          role: 'user',
+          createdAt: data.user.created_at || new Date().toISOString(),
+          savedPostIds: [],
+        };
+        setUser(newUser);
+        if (data.session) {
+          setToken(data.session.access_token);
+        }
+        return { success: true };
+      }
+
+      // Server registration fallback
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password: pass }),
+        body: JSON.stringify({ name, email: cleanEmail, password: cleanPass }),
       });
-      const data = await res.json();
+      const resData = await res.json();
       if (!res.ok) {
-        return { success: false, error: data.error || 'Registration failed' };
+        return { success: false, error: resData.error || error?.message || 'Registration failed' };
       }
-      setUser(data.user);
-      setToken(data.token);
+      setUser(resData.user);
+      setToken(resData.token);
       return { success: true };
     } catch (err: any) {
-      const newUser: User = {
-        id: `user-${Date.now()}`,
-        name,
-        email,
-        role: 'user',
-        createdAt: new Date().toISOString(),
-        savedPostIds: [],
-      };
-      setUser(newUser);
-      setToken(`token-${newUser.id}`);
-      return { success: true };
+      return { success: false, error: err?.message || 'Registration error occurred.' };
     }
   };
 
-  const logout = () => {
-    if (token) {
-      fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => {});
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut().catch(() => {});
+      if (token) {
+        fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+      }
+    } finally {
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem('examresult_user');
+      localStorage.removeItem('examresult_token');
     }
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('examresult_user');
-    localStorage.removeItem('examresult_token');
   };
 
   const toggleFavorite = async (postId: string) => {
