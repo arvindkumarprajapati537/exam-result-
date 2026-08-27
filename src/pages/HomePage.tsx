@@ -69,7 +69,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
             {IMPORTANT_GOV_LINKS.slice(0, 8).map(link => (
               <a
                 key={link.name}

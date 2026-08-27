@@ -594,29 +594,29 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-4 sm:space-y-6">
       {/* 1. Top Admin Master Navigation Bar */}
-      <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-md border-2 border-amber-500/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
-        <div className="space-y-1">
+      <div className="bg-slate-900 text-white rounded-2xl p-3.5 sm:p-5 shadow-md border-2 border-amber-500/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
+        <div className="space-y-1 w-full md:w-auto">
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <span className="bg-amber-500 text-slate-950 text-[10px] font-black uppercase px-2 py-0.5 rounded">
               CMS Admin Control
             </span>
-            <span className="text-[11px] sm:text-xs text-slate-400">
-              Logged in as <strong className="text-white">{user.name}</strong> ({user.email})
+            <span className="text-[11px] sm:text-xs text-slate-400 truncate max-w-[240px] sm:max-w-none">
+              Logged in as <strong className="text-white">{user.name}</strong>
             </span>
           </div>
-          <h1 className="text-lg sm:text-2xl font-black font-serif text-white tracking-tight">
+          <h1 className="text-base sm:text-2xl font-black font-serif text-white tracking-tight">
             EXAM RESULT Content Management System
           </h1>
         </div>
 
         {/* Global Tab Navigation Controls */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full md:w-auto">
+        <div className="grid grid-cols-2 xs:flex xs:flex-wrap items-center gap-1.5 sm:gap-2 w-full md:w-auto">
           <button
             onClick={() => {
               setActiveTab('dashboard');
               onNavigate('/admin/dashboard');
             }}
-            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 min-h-[36px] ${
+            className={`px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[36px] ${
               activeTab === 'dashboard'
                 ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
@@ -631,19 +631,19 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               setActiveTab('posts');
               onNavigate('/admin/posts');
             }}
-            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 min-h-[36px] ${
+            className={`px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[36px] ${
               activeTab === 'posts'
                 ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
             }`}
           >
             <Layers className="w-3.5 h-3.5 shrink-0" />
-            <span>Manage Posts ({posts.length})</span>
+            <span>Posts ({posts.length})</span>
           </button>
 
           <button
             onClick={handleStartNewPost}
-            className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-sm min-h-[36px] ${
+            className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm min-h-[36px] ${
               activeTab === 'new-post' && !editingPostId
                 ? 'bg-emerald-500 text-white font-black'
                 : 'bg-emerald-600 hover:bg-emerald-500 text-white'
@@ -655,17 +655,16 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
           <button
             onClick={() => onNavigate('/admin/change-password')}
-            className="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 border border-slate-700 min-h-[36px]"
+            className="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 border border-slate-700 min-h-[36px]"
             title="Change Admin Password"
           >
             <KeyRound className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="hidden sm:inline">Change Password</span>
-            <span className="sm:hidden">Password</span>
+            <span>Password</span>
           </button>
 
           <button
             onClick={() => onNavigate('/')}
-            className="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1 min-h-[36px]"
+            className="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1 min-h-[36px]"
             title="Open Public Portal"
           >
             <Globe className="w-3.5 h-3.5 shrink-0" />
@@ -677,10 +676,11 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               logout();
               onNavigate('/admin/login');
             }}
-            className="p-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 hover:text-white rounded-lg transition cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
+            className="px-2.5 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 hover:text-white rounded-lg transition cursor-pointer min-h-[36px] flex items-center justify-center gap-1 text-xs font-bold"
             title="Sign Out Admin"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Logout</span>
           </button>
         </div>
       </div>
@@ -1773,9 +1773,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                       </div>
 
                       {/* Category Breakdown */}
-                      <div className="grid grid-cols-5 gap-2 text-xs">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-xs">
                         <div>
-                          <label className="block text-[11px] text-slate-500">UR</label>
+                          <label className="block text-[11px] font-bold text-slate-600">UR</label>
                           <input
                             type="text"
                             value={vac.ur || ''}
@@ -1784,7 +1784,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] text-slate-500">OBC</label>
+                          <label className="block text-[11px] font-bold text-slate-600">OBC</label>
                           <input
                             type="text"
                             value={vac.obc || ''}
@@ -1793,7 +1793,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] text-slate-500">EWS</label>
+                          <label className="block text-[11px] font-bold text-slate-600">EWS</label>
                           <input
                             type="text"
                             value={vac.ews || ''}
@@ -1802,7 +1802,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] text-slate-500">SC</label>
+                          <label className="block text-[11px] font-bold text-slate-600">SC</label>
                           <input
                             type="text"
                             value={vac.sc || ''}
@@ -1811,7 +1811,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] text-slate-500">ST</label>
+                          <label className="block text-[11px] font-bold text-slate-600">ST</label>
                           <input
                             type="text"
                             value={vac.st || ''}
