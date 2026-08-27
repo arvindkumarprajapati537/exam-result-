@@ -2,6 +2,12 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Post, PortalStats, PostCategory } from '../types';
 import { INITIAL_POSTS } from '../data/initialPosts';
 import { supabase } from '../lib/supabase';
+import {
+  fetchPostsFromSupabase,
+  insertPostToSupabase,
+  updatePostInSupabase,
+  deletePostFromSupabase,
+} from '../lib/supabasePosts';
 
 interface PostsContextType {
   posts: Post[];
@@ -20,27 +26,28 @@ interface PostsContextType {
   searchPosts: (query: string, category?: string, includeDrafts?: boolean) => Post[];
 }
 
-const LOCAL_STORAGE_POSTS_KEY = 'examresult_all_posts_v2';
+const LOCAL_STORAGE_CACHE_KEY = 'examresult_supabase_posts_cache';
 
 const PostsContext = createContext<PostsContextType | undefined>(undefined);
 
 export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Initialize with cached posts or INITIAL_POSTS for immediate render
   const [posts, setPosts] = useState<Post[]>(() => {
     try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_POSTS_KEY);
+      const stored = localStorage.getItem(LOCAL_STORAGE_CACHE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
           return parsed;
         }
       }
-    } catch (e) {
-      console.warn('Error reading posts from localStorage:', e);
+    } catch {
+      // ignore
     }
     return INITIAL_POSTS;
   });
 
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<PortalStats | null>(null);
 
@@ -60,44 +67,58 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   };
 
-  // Sync to localStorage on any posts change
-  const saveToStorage = (updatedPosts: Post[]) => {
+  const saveCache = (data: Post[]) => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_POSTS_KEY, JSON.stringify(updatedPosts));
-    } catch (e) {
-      console.warn('Error saving posts to localStorage:', e);
+      localStorage.setItem(LOCAL_STORAGE_CACHE_KEY, JSON.stringify(data));
+    } catch {
+      // ignore
     }
   };
 
+  /**
+   * Primary fetch mechanism: Directly queries the Supabase database.
+   */
   const fetchPosts = useCallback(async (isBackground = false) => {
     if (!isBackground) setLoading(true);
+
     try {
-      // 1. Try fetching from Backend API with cache busting
-      const res = await fetch(`/api/posts?includeDrafts=true&_t=${Date.now()}`, {
+      // 1. Primary: Direct real-time fetch from Supabase database
+      const supaRes = await fetchPostsFromSupabase();
+      if (!supaRes.error && Array.isArray(supaRes.posts) && supaRes.posts.length > 0) {
+        setPosts(supaRes.posts);
+        saveCache(supaRes.posts);
+        setStats(calculateLocalStats(supaRes.posts));
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Secondary: Fallback to server API if Supabase query returned error or empty
+      const serverRes = await fetch(`/api/posts?includeDrafts=true&_t=${Date.now()}`, {
         cache: 'no-store',
         headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
       });
-      const contentType = res.headers.get('content-type') || '';
-      if (res.ok && contentType.includes('application/json')) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setPosts(data);
-          saveToStorage(data);
-          setStats(calculateLocalStats(data));
+      const contentType = serverRes.headers.get('content-type') || '';
+      if (serverRes.ok && contentType.includes('application/json')) {
+        const serverData = await serverRes.json();
+        if (Array.isArray(serverData) && serverData.length > 0) {
+          setPosts(serverData);
+          saveCache(serverData);
+          setStats(calculateLocalStats(serverData));
           setError(null);
           setLoading(false);
           return;
         }
       }
     } catch (err: any) {
-      console.warn('Backend API unavailable, checking local storage & Supabase fallback');
+      console.warn('[Posts Context Fetch Notice]:', err?.message);
     }
 
-    // 2. Check local storage
+    // 3. Fallback to localStorage cache or INITIAL_POSTS if offline
     try {
-      const stored = localStorage.getItem(LOCAL_STORAGE_POSTS_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
+      const cached = localStorage.getItem(LOCAL_STORAGE_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
           setPosts(parsed);
           setStats(calculateLocalStats(parsed));
@@ -105,13 +126,11 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           return;
         }
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
 
-    // 3. Fallback to INITIAL_POSTS
     setPosts(INITIAL_POSTS);
-    saveToStorage(INITIAL_POSTS);
     setStats(calculateLocalStats(INITIAL_POSTS));
     setLoading(false);
   }, []);
@@ -131,31 +150,48 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setStats(calculateLocalStats(posts));
   }, [posts]);
 
-  // Initial fetch and real-time cross-device sync
+  // Initial load, real-time subscription, and focus sync
   useEffect(() => {
+    // 1. Initial live fetch
     fetchPosts();
 
-    // 1. Periodic background polling so any change on mobile/desktop instantly reflects everywhere
-    const intervalId = setInterval(() => {
-      fetchPosts(true);
-    }, 5000);
+    // 2. Real-time Supabase postgres_changes subscription
+    let channel: any = null;
+    try {
+      channel = supabase
+        .channel('posts-realtime-sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
+          fetchPosts(true);
+        })
+        .subscribe();
+    } catch (err) {
+      console.warn('[Supabase Real-time Subscription Notice]:', err);
+    }
 
-    // 2. Re-fetch immediately when user focuses the tab or switches back to browser
-    const handleFocusOrVisible = () => {
+    // 3. Polling fallback every 4 seconds for cross-device consistency
+    const pollInterval = setInterval(() => {
+      fetchPosts(true);
+    }, 4000);
+
+    // 4. Instant re-fetch when tab becomes visible or focused
+    const handleFocus = () => {
       if (document.visibilityState === 'visible' || !document.hidden) {
         fetchPosts(true);
       }
     };
 
-    window.addEventListener('focus', handleFocusOrVisible);
-    window.addEventListener('online', handleFocusOrVisible);
-    document.addEventListener('visibilitychange', handleFocusOrVisible);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('online', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
 
     return () => {
-      clearInterval(intervalId);
-      window.removeEventListener('focus', handleFocusOrVisible);
-      window.removeEventListener('online', handleFocusOrVisible);
-      document.removeEventListener('visibilitychange', handleFocusOrVisible);
+      clearInterval(pollInterval);
+      if (channel) {
+        supabase.removeChannel(channel).catch(() => {});
+      }
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('online', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
     };
   }, [fetchPosts]);
 
@@ -171,178 +207,99 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return posts.filter(p => p.isFeatured && p.status === 'published');
   };
 
+  /**
+   * Creates and publishes/saves a post directly to the Supabase database.
+   * Only confirms success if Supabase confirms successful INSERT.
+   */
   const createPost = async (postData: Partial<Post>): Promise<{ success: boolean; post?: Post; error?: string }> => {
-    const generatedSlug = String(postData.slug || postData.title || 'notice')
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_-]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+    const result = await insertPostToSupabase(postData);
 
-    const newPost: Post = {
-      id: postData.id || `post-${Date.now()}`,
-      title: postData.title || 'Untitled Notification',
-      slug: generatedSlug,
-      category: postData.category || 'latest-jobs',
-      organization: postData.organization || 'Government Organization',
-      advtNo: postData.advtNo || '',
-      stateOrCentral: postData.stateOrCentral || 'All India / Central',
-      qualification: postData.qualification || 'Graduate',
-      totalVacancies: postData.totalVacancies || '',
-      shortDescription: postData.shortDescription || '',
-      content: postData.content || '',
-      importantDates: postData.importantDates || { applicationBegin: '', lastDate: '' },
-      applicationFee: postData.applicationFee,
-      ageLimit: postData.ageLimit,
-      vacancyDetails: postData.vacancyDetails || [],
-      physicalEligibility: postData.physicalEligibility || [],
-      eligibilitySummary: postData.eligibilitySummary || '',
-      howToApply: postData.howToApply || [],
-      importantInstructions: postData.importantInstructions || '',
-      importantLinks: postData.importantLinks || [],
-      officialWebsite: postData.officialWebsite || '',
-      status: postData.status || 'published',
-      isFeatured: postData.isFeatured || false,
-      views: postData.views || 0,
-      publishedAt: postData.publishedAt || new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      metaTitle: postData.metaTitle || '',
-      metaDescription: postData.metaDescription || '',
-    };
+    if (!result.success || !result.post) {
+      return {
+        success: false,
+        error: result.error || 'Failed to save post to Supabase database. Please try again.',
+      };
+    }
 
-    // 1. Immediately update React State & localStorage
-    const updatedPosts = [newPost, ...posts.filter(p => p.id !== newPost.id && p.slug !== newPost.slug)];
+    // Update local state immediately with confirmed database record
+    const confirmedPost = result.post;
+    const updatedPosts = [confirmedPost, ...posts.filter(p => p.id !== confirmedPost.id && p.slug !== confirmedPost.slug)];
     setPosts(updatedPosts);
-    saveToStorage(updatedPosts);
+    saveCache(updatedPosts);
     setStats(calculateLocalStats(updatedPosts));
 
-    // 2. Sync to Backend Server API
+    // Also sync to backend server if available
     try {
-      await fetch('/api/posts', {
+      fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newPost),
-      });
-    } catch (e) {
-      console.warn('Notice saved locally; backend API sync deferred:', e);
-    }
+        body: JSON.stringify(confirmedPost),
+      }).catch(() => {});
+    } catch {}
 
-    // 3. Sync to Supabase Database (if configured)
-    try {
-      if (supabase) {
-        await supabase.from('posts').upsert({
-          id: newPost.id,
-          title: newPost.title,
-          slug: newPost.slug,
-          short_description: newPost.shortDescription,
-          post_date: newPost.publishedAt,
-          organization: newPost.organization,
-          category: newPost.category,
-          state_or_region: newPost.stateOrCentral,
-          total_vacancy: parseInt(String(newPost.totalVacancies || '0'), 10) || 0,
-          application_fee: newPost.applicationFee,
-          age_limit: newPost.ageLimit,
-          vacancy_details: newPost.vacancyDetails,
-          how_to_apply: newPost.howToApply,
-          important_links: newPost.importantLinks,
-          is_featured: newPost.isFeatured,
-          views_count: newPost.views,
-        });
-      }
-    } catch (sbErr) {
-      console.warn('Supabase cloud backup status:', sbErr);
-    }
+    // Trigger full background sync to ensure all devices see fresh data
+    fetchPosts(true);
 
-    return { success: true, post: newPost };
+    return { success: true, post: confirmedPost };
   };
 
+  /**
+   * Updates an existing post record directly in the Supabase database.
+   */
   const updatePost = async (id: string, postData: Partial<Post>): Promise<{ success: boolean; post?: Post; error?: string }> => {
-    let updatedPost: Post | undefined;
+    const result = await updatePostInSupabase(id, postData);
 
-    const updatedPosts = posts.map(p => {
-      if (p.id === id) {
-        updatedPost = {
-          ...p,
-          ...postData,
-          updatedAt: new Date().toISOString(),
-        };
-        return updatedPost;
-      }
-      return p;
-    });
-
-    if (!updatedPost) {
-      return { success: false, error: 'Notice not found in current portal memory.' };
+    if (!result.success || !result.post) {
+      return {
+        success: false,
+        error: result.error || 'Failed to update post in Supabase database.',
+      };
     }
 
-    // 1. Immediately update React State & localStorage
+    const updatedPost = result.post;
+    const updatedPosts = posts.map(p => (p.id === id ? updatedPost : p));
     setPosts(updatedPosts);
-    saveToStorage(updatedPosts);
+    saveCache(updatedPosts);
     setStats(calculateLocalStats(updatedPosts));
 
-    // 2. Sync to Backend Server API
+    // Also sync to backend server if available
     try {
-      await fetch(`/api/posts/${id}`, {
+      fetch(`/api/posts/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedPost),
-      });
-    } catch (e) {
-      console.warn('Notice updated locally; backend sync deferred:', e);
-    }
+      }).catch(() => {});
+    } catch {}
 
-    // 3. Sync to Supabase Database
-    try {
-      if (supabase && updatedPost) {
-        await supabase.from('posts').upsert({
-          id: updatedPost.id,
-          title: updatedPost.title,
-          slug: updatedPost.slug,
-          short_description: updatedPost.shortDescription,
-          organization: updatedPost.organization,
-          category: updatedPost.category,
-          state_or_region: updatedPost.stateOrCentral,
-          total_vacancy: parseInt(String(updatedPost.totalVacancies || '0'), 10) || 0,
-          application_fee: updatedPost.applicationFee,
-          age_limit: updatedPost.ageLimit,
-          vacancy_details: updatedPost.vacancyDetails,
-          how_to_apply: updatedPost.howToApply,
-          important_links: updatedPost.importantLinks,
-          is_featured: updatedPost.isFeatured,
-          views_count: updatedPost.views,
-        });
-      }
-    } catch (sbErr) {
-      console.warn('Supabase cloud update status:', sbErr);
-    }
+    fetchPosts(true);
 
     return { success: true, post: updatedPost };
   };
 
+  /**
+   * Deletes a post record permanently from the Supabase database.
+   */
   const deletePost = async (id: string): Promise<{ success: boolean; error?: string }> => {
-    const updatedPosts = posts.filter(p => p.id !== id);
+    const result = await deletePostFromSupabase(id);
 
-    // 1. Immediately update React State & localStorage
+    if (!result.success) {
+      return {
+        success: false,
+        error: result.error || 'Failed to delete post from Supabase database.',
+      };
+    }
+
+    const updatedPosts = posts.filter(p => p.id !== id);
     setPosts(updatedPosts);
-    saveToStorage(updatedPosts);
+    saveCache(updatedPosts);
     setStats(calculateLocalStats(updatedPosts));
 
-    // 2. Sync to Backend API
+    // Also sync delete to backend server
     try {
-      await fetch(`/api/posts/${id}`, { method: 'DELETE' });
-    } catch (e) {
-      console.warn('Notice deleted locally; backend sync deferred');
-    }
+      fetch(`/api/posts/${id}`, { method: 'DELETE' }).catch(() => {});
+    } catch {}
 
-    // 3. Sync delete to Supabase
-    try {
-      if (supabase) {
-        await supabase.from('posts').delete().eq('id', id);
-      }
-    } catch (sbErr) {
-      console.warn('Supabase cloud delete status:', sbErr);
-    }
+    fetchPosts(true);
 
     return { success: true };
   };
@@ -353,9 +310,7 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch {
       // ignore
     }
-    setPosts(INITIAL_POSTS);
-    saveToStorage(INITIAL_POSTS);
-    setStats(calculateLocalStats(INITIAL_POSTS));
+    fetchPosts();
   };
 
   const searchPosts = (query: string, category?: string, includeDrafts: boolean = false): Post[] => {
@@ -405,4 +360,3 @@ export const usePosts = () => {
   }
   return context;
 };
-

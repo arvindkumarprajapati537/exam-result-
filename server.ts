@@ -201,21 +201,121 @@ function saveUsers(users: User[]) {
   }
 }
 
-// Convert application Post format to Supabase posts table schema
-function toSupabasePost(p: Post) {
-  const pAny = p as any;
+// Convert Supabase database row to Post
+function fromSupabasePost(row: any): Post {
+  let extra: any = {};
+  if (row.eligibility_criteria) {
+    if (typeof row.eligibility_criteria === 'string' && row.eligibility_criteria.startsWith('{')) {
+      try {
+        extra = JSON.parse(row.eligibility_criteria);
+      } catch {
+        extra = { eligibilitySummary: row.eligibility_criteria };
+      }
+    } else if (typeof row.eligibility_criteria === 'object' && row.eligibility_criteria !== null) {
+      extra = row.eligibility_criteria;
+    } else {
+      extra = { eligibilitySummary: String(row.eligibility_criteria) };
+    }
+  }
+
+  const qual =
+    extra.qualification ||
+    (Array.isArray(row.qualification_tags) && row.qualification_tags.length > 0
+      ? row.qualification_tags[0]
+      : 'Graduate');
+
   return {
-    id: p.id,
-    title: p.title,
-    slug: p.slug,
-    short_description: p.shortDescription || p.title,
-    post_date: pAny.postDate || p.createdAt || new Date().toISOString(),
-    update_date: p.updatedAt || null,
-    organization: p.organization || 'Government of India',
+    id: String(row.id),
+    title: row.title || 'Untitled Notification',
+    slug: row.slug || String(row.id),
+    category: row.category || 'latest-jobs',
+    organization: row.organization || 'Government Organization',
+    advtNo: row.advt_no || extra.advtNo || '',
+    stateOrCentral: row.state_or_region || 'All India / Central',
+    qualification: qual,
+    totalVacancies: row.total_vacancy ? String(row.total_vacancy) : (extra.totalVacancies || ''),
+    shortDescription: row.short_description || row.title || '',
+    content: extra.content || row.short_description || '',
+    importantDates: {
+      applicationBegin: row.application_begin || '',
+      lastDate: row.last_date_apply || '',
+      feePaymentLastDate: row.last_date_fee || '',
+      examDate: row.exam_date || '',
+      admitCardDate: row.admit_card_date || '',
+      resultDate: row.result_date || '',
+      answerKeyDate: row.answer_key_date || '',
+      objectionLastDate: extra.objectionLastDate || '',
+      correctionDate: extra.correctionDate || '',
+      customDates: extra.customDates || [],
+    },
+    applicationFee:
+      typeof row.application_fee === 'object' && row.application_fee !== null
+        ? row.application_fee
+        : { generalObc: '₹ 100/-', scSt: '₹ 0/-', phFemale: '₹ 0/-', paymentMode: 'Online' },
+    ageLimit:
+      typeof row.age_limit === 'object' && row.age_limit !== null
+        ? row.age_limit
+        : { minAge: 18, maxAge: 35 },
+    vacancyDetails: Array.isArray(row.vacancy_details) ? row.vacancy_details : [],
+    physicalEligibility: Array.isArray(extra.physicalEligibility) ? extra.physicalEligibility : [],
+    eligibilitySummary:
+      extra.eligibilitySummary ||
+      (typeof row.eligibility_criteria === 'string' && !row.eligibility_criteria.startsWith('{')
+        ? row.eligibility_criteria
+        : ''),
+    howToApply: Array.isArray(row.how_to_apply) ? row.how_to_apply : [],
+    importantInstructions: extra.importantInstructions || '',
+    importantLinks: Array.isArray(row.important_links) ? row.important_links : [],
+    officialWebsite: extra.officialWebsite || '',
+    status: extra.status === 'draft' ? 'draft' : 'published',
+    isFeatured: !!row.is_featured || !!extra.isFeatured,
+    views: typeof row.views_count === 'number' ? row.views_count : 0,
+    publishedAt: row.post_date || row.created_at || new Date().toISOString(),
+    createdAt: row.created_at || row.post_date || new Date().toISOString(),
+    updatedAt: row.updated_at || row.update_date || new Date().toISOString(),
+    metaTitle: extra.metaTitle || row.title || '',
+    metaDescription: extra.metaDescription || row.short_description || '',
+  };
+}
+
+// Convert application Post format to Supabase posts table schema
+function toSupabasePost(p: Partial<Post>) {
+  const extra = {
+    status: p.status || 'published',
+    content: p.content || '',
+    qualification: p.qualification || 'Graduate',
+    officialWebsite: p.officialWebsite || '',
+    physicalEligibility: p.physicalEligibility || [],
+    importantInstructions: p.importantInstructions || '',
+    eligibilitySummary: p.eligibilitySummary || '',
+    customDates: p.importantDates?.customDates || [],
+    objectionLastDate: p.importantDates?.objectionLastDate || '',
+    correctionDate: p.importantDates?.correctionDate || '',
+    metaTitle: p.metaTitle || '',
+    metaDescription: p.metaDescription || '',
+    totalVacancies: p.totalVacancies || '',
+    isFeatured: !!p.isFeatured,
+  };
+
+  const totalVacNum =
+    typeof p.totalVacancies === 'number'
+      ? p.totalVacancies
+      : parseInt(String(p.totalVacancies || '0').replace(/\D/g, ''), 10) || 0;
+
+  const now = new Date().toISOString();
+
+  return {
+    id: p.id || `post-${Date.now()}`,
+    title: p.title || 'Untitled Notification',
+    slug: p.slug || `post-${Date.now()}`,
+    short_description: p.shortDescription || p.title || '',
+    post_date: p.publishedAt || now,
+    update_date: p.updatedAt || now,
+    organization: p.organization || 'Government Organization',
     category: p.category || 'latest-jobs',
-    post_name: pAny.postName || p.title,
+    post_name: p.title || 'Notification',
     advt_no: p.advtNo || null,
-    total_vacancy: typeof p.totalVacancies === 'number' ? p.totalVacancies : (parseInt(String(p.totalVacancies || '0').replace(/\D/g, '')) || 0),
+    total_vacancy: totalVacNum,
     application_begin: p.importantDates?.applicationBegin || null,
     last_date_apply: p.importantDates?.lastDate || null,
     last_date_fee: p.importantDates?.feePaymentLastDate || null,
@@ -226,22 +326,22 @@ function toSupabasePost(p: Post) {
     application_fee: p.applicationFee || {},
     age_limit: p.ageLimit || {},
     vacancy_details: p.vacancyDetails || [],
-    eligibility_criteria: pAny.eligibilityCriteria || null,
+    eligibility_criteria: JSON.stringify(extra),
     how_to_apply: p.howToApply || [],
     important_links: p.importantLinks || [],
     state_or_region: p.stateOrCentral || 'All India / Central',
     qualification_tags: p.qualification ? [p.qualification] : [],
-    is_trending: !!pAny.isTrending,
+    is_trending: false,
     is_featured: !!p.isFeatured,
-    is_breaking_news: !!pAny.isBreaking,
+    is_breaking_news: false,
     views_count: p.views || 0,
-    created_at: p.createdAt || new Date().toISOString(),
-    updated_at: p.updatedAt || new Date().toISOString(),
+    created_at: p.createdAt || now,
+    updated_at: p.updatedAt || now,
   };
 }
 
 // Sync single post to Supabase database in background
-async function syncPostToSupabase(post: Post) {
+async function syncPostToSupabase(post: Partial<Post>) {
   try {
     const row = toSupabasePost(post);
     await supabase.from('posts').upsert(row);
@@ -251,7 +351,7 @@ async function syncPostToSupabase(post: Post) {
 }
 
 // Delete post from Supabase database in background
-async function deletePostFromSupabase(id: string, slug: string) {
+async function deletePostFromSupabase(id: string, slug?: string) {
   try {
     await supabase.from('posts').delete().eq('id', id);
     if (slug) {
@@ -296,9 +396,27 @@ async function startServer() {
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
 
-  // Get all posts with filtering, sorting, pagination
-  app.get('/api/posts', (req, res) => {
-    let posts = loadPosts();
+  // Get all posts with filtering, sorting, pagination (Powered by Supabase database)
+  app.get('/api/posts', async (req, res) => {
+    let posts: Post[] = [];
+
+    try {
+      const { data: supaRows, error: supaErr } = await supabase
+        .from('posts')
+        .select('*')
+        .order('post_date', { ascending: false });
+
+      if (!supaErr && Array.isArray(supaRows) && supaRows.length > 0) {
+        posts = supaRows.map(fromSupabasePost);
+        // Also update local cache
+        savePosts(posts);
+      } else {
+        posts = loadPosts();
+      }
+    } catch {
+      posts = loadPosts();
+    }
+
     const { category, search, status, qualification, state, sort, limit } = req.query;
 
     if (category && typeof category === 'string' && category !== 'all') {
@@ -355,8 +473,24 @@ async function startServer() {
   });
 
   // Get single post by slug or ID
-  app.get('/api/posts/:slugOrId', (req, res) => {
+  app.get('/api/posts/:slugOrId', async (req, res) => {
     const { slugOrId } = req.params;
+
+    try {
+      const { data: supaRows } = await supabase
+        .from('posts')
+        .select('*')
+        .or(`id.eq.${slugOrId},slug.eq.${slugOrId}`)
+        .limit(1);
+
+      if (supaRows && supaRows.length > 0) {
+        const post = fromSupabasePost(supaRows[0]);
+        // Increment view count in Supabase
+        supabase.from('posts').update({ views_count: (post.views || 0) + 1 }).eq('id', post.id).then(() => {});
+        return res.json({ ...post, views: (post.views || 0) + 1 });
+      }
+    } catch {}
+
     const posts = loadPosts();
     const postIndex = posts.findIndex(p => p.slug === slugOrId || p.id === slugOrId);
 
@@ -372,13 +506,12 @@ async function startServer() {
   });
 
   // Create or Upsert post
-  app.post('/api/posts', (req, res) => {
+  app.post('/api/posts', async (req, res) => {
     const postData = req.body;
     if (!postData.title || !postData.category) {
       return res.status(400).json({ error: 'Title and category are required' });
     }
 
-    const posts = loadPosts();
     const targetId = postData.id || `post-${Date.now()}`;
     const generatedSlug = postData.slug
       ? postData.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
@@ -395,6 +528,30 @@ async function startServer() {
       publishedAt: postData.publishedAt || new Date().toISOString(),
     };
 
+    // Save to Supabase
+    try {
+      const row = toSupabasePost(newPost);
+      const { data, error } = await supabase.from('posts').upsert(row).select();
+      if (error) {
+        console.error('Supabase /api/posts error:', error);
+      } else if (data && data[0]) {
+        const confirmed = fromSupabasePost(data[0]);
+        // Also update local cache
+        const posts = loadPosts();
+        const existingIdx = posts.findIndex(p => p.id === targetId || p.slug === generatedSlug);
+        if (existingIdx > -1) {
+          posts[existingIdx] = confirmed;
+        } else {
+          posts.unshift(confirmed);
+        }
+        savePosts(posts);
+        return res.status(201).json(confirmed);
+      }
+    } catch (e) {
+      console.error('Supabase /api/posts exception:', e);
+    }
+
+    const posts = loadPosts();
     const existingIdx = posts.findIndex(p => p.id === targetId || p.slug === generatedSlug);
     if (existingIdx > -1) {
       posts[existingIdx] = { ...posts[existingIdx], ...newPost };
@@ -403,22 +560,44 @@ async function startServer() {
     }
     savePosts(posts);
 
-    // Sync to Supabase in background
-    syncPostToSupabase(newPost);
-
     res.status(201).json(newPost);
   });
 
   // Update post
-  app.put('/api/posts/:id', (req, res) => {
+  app.put('/api/posts/:id', async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
+
+    const completePost: Partial<Post> = {
+      ...updateData,
+      id,
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      const row = toSupabasePost(completePost);
+      const { data, error } = await supabase.from('posts').upsert(row).select();
+      if (!error && data && data[0]) {
+        const confirmed = fromSupabasePost(data[0]);
+        const posts = loadPosts();
+        const index = posts.findIndex(p => p.id === id || p.slug === id);
+        if (index > -1) {
+          posts[index] = confirmed;
+        } else {
+          posts.unshift(confirmed);
+        }
+        savePosts(posts);
+        return res.json(confirmed);
+      }
+    } catch (e) {
+      console.error('Supabase /api/posts/:id update exception:', e);
+    }
+
     const posts = loadPosts();
     const index = posts.findIndex(p => p.id === id || p.slug === id);
 
     let savedPost: Post;
     if (index === -1) {
-      // Auto-insert if not existing
       savedPost = {
         ...updateData,
         id,
@@ -436,29 +615,24 @@ async function startServer() {
     }
 
     savePosts(posts);
-    syncPostToSupabase(savedPost);
-
     res.json(savedPost);
   });
 
   // Delete post
-  app.delete('/api/posts/:id', (req, res) => {
+  app.delete('/api/posts/:id', async (req, res) => {
     const { id } = req.params;
+
+    try {
+      await supabase.from('posts').delete().eq('id', id);
+    } catch (e) {
+      console.error('Supabase delete error:', e);
+    }
+
     let posts = loadPosts();
-    const initialLen = posts.length;
-    const targetPost = posts.find(p => p.id === id || p.slug === id);
     posts = posts.filter(p => p.id !== id && p.slug !== id);
-
-    if (posts.length === initialLen) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
     savePosts(posts);
-    if (targetPost) {
-      deletePostFromSupabase(targetPost.id, targetPost.slug);
-    }
 
-    res.json({ message: 'Post deleted successfully', id });
+    res.json({ success: true, message: 'Post deleted successfully' });
   });
 
   // Portal statistics
