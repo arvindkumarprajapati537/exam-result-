@@ -103,9 +103,18 @@ export const AdminAuthPage: React.FC<AdminAuthPageProps> = ({ onNavigate }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                Password
+              </label>
+              <button
+                type="button"
+                onClick={() => onNavigate('/admin/forgot-password')}
+                className="text-xs text-amber-400 hover:text-amber-300 font-semibold cursor-pointer transition hover:underline"
+              >
+                Forgot Password?
+              </button>
+            </div>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
               <input

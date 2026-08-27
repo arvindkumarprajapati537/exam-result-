@@ -622,6 +622,15 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           </button>
 
           <button
+            onClick={() => onNavigate('/admin/change-password')}
+            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1.5 border border-slate-700"
+            title="Change Admin Password"
+          >
+            <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+            <span>Change Password</span>
+          </button>
+
+          <button
             onClick={() => onNavigate('/')}
             className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-1"
             title="Open Public Portal"
@@ -795,6 +804,13 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               >
                 <Layers className="w-3.5 h-3.5" />
                 <span>Manage Posts</span>
+              </button>
+              <button
+                onClick={() => onNavigate('/admin/change-password')}
+                className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs px-3.5 py-2 rounded-lg transition cursor-pointer flex items-center gap-1.5"
+              >
+                <KeyRound className="w-3.5 h-3.5 text-amber-700" />
+                <span>Change Password</span>
               </button>
               <button
                 onClick={() => onNavigate('/')}

@@ -1,0 +1,11 @@
+[
+  {
+    "id": "admin-arvind-primary",
+    "name": "Arvind Kumar Prajapati",
+    "email": "arvindkumarprajapati537@gmail.com",
+    "salt": "6dd89f725e6084c79f17c7c4df676dc3",
+    "passwordHash": "6601853c3d183f8d429fc2fe9f94a6397394123832599c5aebcd5d89b9b14a51d112a366f4051daf4180ad0c117966768655b0bb895917c16047eb7af1d21527",
+    "role": "admin",
+    "createdAt": "2026-01-01T00:00:00Z"
+  }
+]

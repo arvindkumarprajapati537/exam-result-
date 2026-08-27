@@ -38,6 +38,29 @@ function verifyPasswordHash(password: string, expectedHash: string, salt: string
   }
 }
 
+// Strong Password Policy Validator
+function validatePasswordPolicy(password: string): { valid: boolean; error?: string } {
+  if (!password || password.length < 10) {
+    return { valid: false, error: 'Password must be at least 10 characters long.' };
+  }
+  if (!/[A-Z]/.test(password)) {
+    return { valid: false, error: 'Password must contain at least one uppercase letter (A-Z).' };
+  }
+  if (!/[a-z]/.test(password)) {
+    return { valid: false, error: 'Password must contain at least one lowercase letter (a-z).' };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, error: 'Password must contain at least one number (0-9).' };
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(password)) {
+    return { valid: false, error: 'Password must contain at least one special character (!@#$%^&*...).' };
+  }
+  return { valid: true };
+}
+
+// In-memory store for Admin password reset verification tokens (15-minute expiry)
+const adminResetTokens = new Map<string, { email: string; token: string; expiresAt: number }>();
+
 interface AdminRecord {
   id: string;
   name: string;
@@ -457,6 +480,170 @@ async function startServer() {
       activeAdminSessions.delete(token);
     }
     return res.json({ message: 'Logged out successfully.' });
+  });
+
+  // Auth: Admin Change Password
+  app.post('/api/auth/admin-change-password', (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Access Denied. Admin authentication is required.' });
+    }
+
+    const token = authHeader.replace('Bearer ', '').trim();
+    const session = activeAdminSessions.get(token);
+
+    if (!session || session.expiresAt < Date.now() || session.user.role !== 'admin') {
+      if (session) activeAdminSessions.delete(token);
+      return res.status(401).json({ error: 'Session expired or unauthorized. Please log in again.' });
+    }
+
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const cleanCurrent = (currentPassword || '').trim();
+    const cleanNew = (newPassword || '').trim();
+    const cleanConfirm = (confirmPassword || '').trim();
+
+    if (!cleanCurrent || !cleanNew || !cleanConfirm) {
+      return res.status(400).json({ error: 'All fields (Current, New, and Confirm Password) are required.' });
+    }
+
+    if (cleanNew !== cleanConfirm) {
+      return res.status(400).json({ error: 'New Password and Confirm New Password do not match.' });
+    }
+
+    const policyCheck = validatePasswordPolicy(cleanNew);
+    if (!policyCheck.valid) {
+      return res.status(400).json({ error: policyCheck.error || 'Password does not meet security requirements.' });
+    }
+
+    const admins = loadAdmins();
+    const adminIdx = admins.findIndex(a => a.email.toLowerCase() === session.user.email.toLowerCase());
+
+    if (adminIdx === -1) {
+      return res.status(404).json({ error: 'Admin account record not found.' });
+    }
+
+    const targetAdmin = admins[adminIdx];
+
+    // 1. Verify current password securely
+    const isCurrentValid = verifyPasswordHash(cleanCurrent, targetAdmin.passwordHash, targetAdmin.salt);
+    if (!isCurrentValid) {
+      return res.status(400).json({ error: 'Current password is incorrect. Please verify and try again.' });
+    }
+
+    // 2. Generate new salt & new cryptographic hash
+    const newSalt = crypto.randomBytes(16).toString('hex');
+    const newHash = hashPassword(cleanNew, newSalt);
+
+    admins[adminIdx] = {
+      ...targetAdmin,
+      salt: newSalt,
+      passwordHash: newHash,
+    };
+    saveAdmins(admins);
+
+    // 3. Invalidate all active sessions for this admin (require logging in again)
+    for (const [sToken, sData] of activeAdminSessions.entries()) {
+      if (sData.user.email.toLowerCase() === targetAdmin.email.toLowerCase()) {
+        activeAdminSessions.delete(sToken);
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: 'Password changed successfully. You must now log in with your new password.',
+    });
+  });
+
+  // Auth: Admin Forgot Password (Request Reset)
+  app.post('/api/auth/admin-forgot-password', (req, res) => {
+    const { email } = req.body;
+    const cleanEmail = (email || '').toLowerCase().trim();
+
+    if (!cleanEmail) {
+      return res.status(400).json({ error: 'Please enter an email address.' });
+    }
+
+    const admins = loadAdmins();
+    const matchedAdmin = admins.find(a => a.email.toLowerCase() === cleanEmail);
+
+    if (matchedAdmin) {
+      // Generate secure 6-character reset token
+      const resetCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+      adminResetTokens.set(cleanEmail, {
+        email: cleanEmail,
+        token: resetCode,
+        expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes validity
+      });
+
+      return res.json({
+        success: true,
+        message: 'If an authorized administrator account exists for this email, password reset instructions have been generated.',
+        demoResetCode: resetCode, // Provided for instant interactive validation in this environment
+      });
+    }
+
+    // Do NOT reveal whether an unauthorized email account exists
+    return res.json({
+      success: true,
+      message: 'If an authorized administrator account exists for this email, password reset instructions have been generated.',
+    });
+  });
+
+  // Auth: Admin Reset Password with Token
+  app.post('/api/auth/admin-reset-password', (req, res) => {
+    const { email, resetCode, newPassword, confirmPassword } = req.body;
+    const cleanEmail = (email || '').toLowerCase().trim();
+    const cleanCode = (resetCode || '').trim().toUpperCase();
+    const cleanNew = (newPassword || '').trim();
+    const cleanConfirm = (confirmPassword || '').trim();
+
+    if (!cleanEmail || !cleanCode || !cleanNew || !cleanConfirm) {
+      return res.status(400).json({ error: 'All fields are required to reset password.' });
+    }
+
+    if (cleanNew !== cleanConfirm) {
+      return res.status(400).json({ error: 'New Password and Confirm New Password do not match.' });
+    }
+
+    const policyCheck = validatePasswordPolicy(cleanNew);
+    if (!policyCheck.valid) {
+      return res.status(400).json({ error: policyCheck.error || 'Password does not meet security requirements.' });
+    }
+
+    const tokenEntry = adminResetTokens.get(cleanEmail);
+    if (!tokenEntry || tokenEntry.token !== cleanCode || tokenEntry.expiresAt < Date.now()) {
+      return res.status(400).json({ error: 'Invalid or expired password reset verification code.' });
+    }
+
+    const admins = loadAdmins();
+    const adminIdx = admins.findIndex(a => a.email.toLowerCase() === cleanEmail);
+
+    if (adminIdx === -1) {
+      return res.status(400).json({ error: 'Invalid or expired password reset verification code.' });
+    }
+
+    const newSalt = crypto.randomBytes(16).toString('hex');
+    const newHash = hashPassword(cleanNew, newSalt);
+
+    admins[adminIdx] = {
+      ...admins[adminIdx],
+      salt: newSalt,
+      passwordHash: newHash,
+    };
+    saveAdmins(admins);
+    adminResetTokens.delete(cleanEmail);
+
+    // Invalidate active sessions
+    for (const [sToken, sData] of activeAdminSessions.entries()) {
+      if (sData.user.email.toLowerCase() === cleanEmail) {
+        activeAdminSessions.delete(sToken);
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: 'Password has been reset successfully. Please log in with your new password.',
+    });
   });
 
   // Auth: Public Candidate Login

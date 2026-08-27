@@ -5,6 +5,20 @@ interface AuthContextType extends AuthState {
   login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   adminLogin: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   googleLogin: (email: string, name?: string) => Promise<{ success: boolean; error?: string }>;
+  changeAdminPassword: (
+    currentPass: string,
+    newPass: string,
+    confirmPass: string
+  ) => Promise<{ success: boolean; message?: string; error?: string }>;
+  requestPasswordReset: (
+    email: string
+  ) => Promise<{ success: boolean; message?: string; demoResetCode?: string; error?: string }>;
+  resetPasswordWithToken: (
+    email: string,
+    code: string,
+    newPass: string,
+    confirmPass: string
+  ) => Promise<{ success: boolean; message?: string; error?: string }>;
   register: (name: string, email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   toggleFavorite: (postId: string) => Promise<boolean>;
@@ -133,6 +147,86 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const changeAdminPassword = async (
+    currentPass: string,
+    newPass: string,
+    confirmPass: string
+  ) => {
+    try {
+      const activeToken = token || localStorage.getItem('examresult_token') || '';
+      const res = await fetch('/api/auth/admin-change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${activeToken}`,
+        },
+        body: JSON.stringify({
+          currentPassword: currentPass,
+          newPassword: newPass,
+          confirmPassword: confirmPass,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        // Require logging in again
+        logout();
+        return { success: true, message: data.message };
+      }
+      return { success: false, error: data.error || 'Failed to change password.' };
+    } catch (err: any) {
+      return { success: false, error: 'Network error communicating with server.' };
+    }
+  };
+
+  const requestPasswordReset = async (email: string) => {
+    try {
+      const res = await fetch('/api/auth/admin-forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        return {
+          success: true,
+          message: data.message,
+          demoResetCode: data.demoResetCode,
+        };
+      }
+      return { success: false, error: data.error || 'Failed to request reset.' };
+    } catch (err: any) {
+      return { success: false, error: 'Network error requesting password reset.' };
+    }
+  };
+
+  const resetPasswordWithToken = async (
+    email: string,
+    code: string,
+    newPass: string,
+    confirmPass: string
+  ) => {
+    try {
+      const res = await fetch('/api/auth/admin-reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          resetCode: code,
+          newPassword: newPass,
+          confirmPassword: confirmPass,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        logout();
+        return { success: true, message: data.message };
+      }
+      return { success: false, error: data.error || 'Failed to reset password.' };
+    } catch (err: any) {
+      return { success: false, error: 'Network error resetting password.' };
+    }
+  };
+
   const register = async (name: string, email: string, pass: string) => {
     try {
       const res = await fetch('/api/auth/register', {
@@ -163,8 +257,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    if (token) {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
     setUser(null);
     setToken(null);
+    localStorage.removeItem('examresult_user');
+    localStorage.removeItem('examresult_token');
   };
 
   const toggleFavorite = async (postId: string) => {
@@ -225,6 +327,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         adminLogin,
         googleLogin,
+        changeAdminPassword,
+        requestPasswordReset,
+        resetPasswordWithToken,
         register,
         logout,
         toggleFavorite,

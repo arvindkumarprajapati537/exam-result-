@@ -12,6 +12,8 @@ import { LatestUpdatesPage } from './pages/LatestUpdatesPage';
 import { UserLoginPage, UserRegisterPage, UserProfilePage } from './pages/UserAuthPages';
 import { AdminAuthPage } from './pages/AdminAuthPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { AdminChangePasswordPage } from './pages/AdminChangePasswordPage';
+import { AdminForgotPasswordPage } from './pages/AdminForgotPasswordPage';
 import { AboutPage, ContactPage, PrivacyPolicyPage, DisclaimerPage } from './pages/StaticPages';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -175,6 +177,12 @@ const AppContent: React.FC = () => {
     // 7. Admin Panel Routes
     if (safePath === '/admin/login' || safePath === '/admin') {
       return <AdminAuthPage onNavigate={navigate} />;
+    }
+    if (safePath === '/admin/forgot-password') {
+      return <AdminForgotPasswordPage onNavigate={navigate} />;
+    }
+    if (safePath === '/admin/change-password') {
+      return <AdminChangePasswordPage onNavigate={navigate} />;
     }
     if (safePath === '/admin/dashboard') {
       return <AdminDashboardPage onNavigate={navigate} onSelectPost={handleSelectPost} initialTab="dashboard" />;
