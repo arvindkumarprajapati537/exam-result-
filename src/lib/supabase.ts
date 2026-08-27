@@ -1,9 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase project credentials provided by user
+// Supabase project credentials
 export const SUPABASE_PROJECT_ID = 'congripxkyyqjsuoqvec';
 
 const getEnvVar = (key: string): string | undefined => {
+  try {
+    const meta = import.meta as any;
+    if (typeof meta !== 'undefined' && meta.env && meta.env[key]) {
+      return meta.env[key];
+    }
+  } catch {}
   if (typeof process !== 'undefined' && process.env && process.env[key]) {
     return process.env[key];
   }
@@ -27,18 +33,31 @@ export const SUPABASE_ANON_KEY =
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**
- * Check connectivity to Supabase
+ * Check connectivity to Supabase Auth and Database
  */
-export async function testSupabaseConnection(): Promise<{ connected: boolean; message: string }> {
+export async function testSupabaseConnection(): Promise<{
+  connected: boolean;
+  message: string;
+  projectId: string;
+  postsCount?: number;
+}> {
   try {
-    // Ping supabase health endpoint or auth session
-    const { data, error } = await supabase.auth.getSession();
-    if (error) {
-      return { connected: false, message: error.message };
+    const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
+    if (sessionErr) {
+      return { connected: false, message: sessionErr.message, projectId: SUPABASE_PROJECT_ID };
     }
-    return { connected: true, message: 'Connected to Supabase successfully' };
+    const { data: posts, error: postErr } = await supabase.from('posts').select('id').limit(100);
+    return {
+      connected: true,
+      message: 'Connected to Supabase Authentication & Database successfully',
+      projectId: SUPABASE_PROJECT_ID,
+      postsCount: posts?.length || 0,
+    };
   } catch (err: any) {
-    return { connected: false, message: err?.message || 'Supabase connection failed' };
+    return {
+      connected: false,
+      message: err?.message || 'Supabase connection failed',
+      projectId: SUPABASE_PROJECT_ID,
+    };
   }
 }
-

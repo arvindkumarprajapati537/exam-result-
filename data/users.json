@@ -1,0 +1,24 @@
+[
+  {
+    "id": "user-admin-arvind",
+    "name": "Arvind Kumar Prajapati",
+    "email": "arvindkumarprajapati537@gmail.com",
+    "role": "admin",
+    "createdAt": "2026-01-01T00:00:00Z",
+    "savedPostIds": [
+      "post-1",
+      "post-2"
+    ]
+  },
+  {
+    "id": "user-demo",
+    "name": "Candidate User",
+    "email": "candidate@example.com",
+    "role": "user",
+    "createdAt": "2026-01-05T00:00:00Z",
+    "savedPostIds": [
+      "post-1",
+      "post-7"
+    ]
+  }
+]

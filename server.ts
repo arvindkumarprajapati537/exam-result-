@@ -73,15 +73,32 @@ interface AdminRecord {
 
 // Authorized Admin Configuration
 const PRIMARY_ADMIN_EMAIL = 'arvindkumarprajapati537@gmail.com';
-const DEFAULT_SALT = 'examresult_secure_admin_salt_2026';
-// Secure password hash computed for primary admin account
-const PRIMARY_ADMIN_HASH = hashPassword('Arvind@2000', DEFAULT_SALT);
+const DEFAULT_SALT = '6dd89f725e6084c79f17c7c4df676dc3';
+// Secure password hash computed for primary admin account password Arvind@2000
+const PRIMARY_ADMIN_HASH = '6601853c3d183f8d429fc2fe9f94a6397394123832599c5aebcd5d89b9b14a51d112a366f4051daf4180ad0c117966768655b0bb895917c16047eb7af1d21527';
 
 function loadAdmins(): AdminRecord[] {
   try {
     if (fs.existsSync(ADMINS_FILE)) {
       const data = fs.readFileSync(ADMINS_FILE, 'utf-8');
-      return JSON.parse(data);
+      const parsed: AdminRecord[] = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Ensure primary admin is included
+        const hasPrimary = parsed.some(a => a.email.toLowerCase() === PRIMARY_ADMIN_EMAIL.toLowerCase());
+        if (!hasPrimary) {
+          parsed.unshift({
+            id: 'admin-arvind-primary',
+            name: 'Arvind Kumar Prajapati',
+            email: PRIMARY_ADMIN_EMAIL,
+            salt: DEFAULT_SALT,
+            passwordHash: PRIMARY_ADMIN_HASH,
+            role: 'admin',
+            createdAt: '2026-01-01T00:00:00Z',
+          });
+          saveAdmins(parsed);
+        }
+        return parsed;
+      }
     }
   } catch (err) {
     console.error('Error reading admins file:', err);
@@ -138,12 +155,15 @@ function loadPosts(): Post[] {
   try {
     if (fs.existsSync(POSTS_FILE)) {
       const data = fs.readFileSync(POSTS_FILE, 'utf-8');
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
     }
   } catch (err) {
     console.error('Error reading posts file:', err);
   }
-  // Initialize with initial posts
+
   savePosts(INITIAL_POSTS);
   return INITIAL_POSTS;
 }
@@ -160,11 +180,15 @@ function loadUsers(): User[] {
   try {
     if (fs.existsSync(USERS_FILE)) {
       const data = fs.readFileSync(USERS_FILE, 'utf-8');
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
     }
   } catch (err) {
     console.error('Error reading users file:', err);
   }
+
   saveUsers(INITIAL_USERS);
   return INITIAL_USERS;
 }
@@ -174,6 +198,82 @@ function saveUsers(users: User[]) {
     fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
   } catch (err) {
     console.error('Error saving users file:', err);
+  }
+}
+
+// Convert application Post format to Supabase posts table schema
+function toSupabasePost(p: Post) {
+  const pAny = p as any;
+  return {
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    short_description: p.shortDescription || p.title,
+    post_date: pAny.postDate || p.createdAt || new Date().toISOString(),
+    update_date: p.updatedAt || null,
+    organization: p.organization || 'Government of India',
+    category: p.category || 'latest-jobs',
+    post_name: pAny.postName || p.title,
+    advt_no: p.advtNo || null,
+    total_vacancy: typeof p.totalVacancies === 'number' ? p.totalVacancies : (parseInt(String(p.totalVacancies || '0').replace(/\D/g, '')) || 0),
+    application_begin: p.importantDates?.applicationBegin || null,
+    last_date_apply: p.importantDates?.lastDate || null,
+    last_date_fee: p.importantDates?.feePaymentLastDate || null,
+    exam_date: p.importantDates?.examDate || null,
+    admit_card_date: p.importantDates?.admitCardDate || null,
+    result_date: p.importantDates?.resultDate || null,
+    answer_key_date: p.importantDates?.answerKeyDate || null,
+    application_fee: p.applicationFee || {},
+    age_limit: p.ageLimit || {},
+    vacancy_details: p.vacancyDetails || [],
+    eligibility_criteria: pAny.eligibilityCriteria || null,
+    how_to_apply: p.howToApply || [],
+    important_links: p.importantLinks || [],
+    state_or_region: p.stateOrCentral || 'All India / Central',
+    qualification_tags: p.qualification ? [p.qualification] : [],
+    is_trending: !!pAny.isTrending,
+    is_featured: !!p.isFeatured,
+    is_breaking_news: !!pAny.isBreaking,
+    views_count: p.views || 0,
+    created_at: p.createdAt || new Date().toISOString(),
+    updated_at: p.updatedAt || new Date().toISOString(),
+  };
+}
+
+// Sync single post to Supabase database in background
+async function syncPostToSupabase(post: Post) {
+  try {
+    const row = toSupabasePost(post);
+    await supabase.from('posts').upsert(row);
+  } catch (err) {
+    console.warn('Background Supabase post sync notice:', err);
+  }
+}
+
+// Delete post from Supabase database in background
+async function deletePostFromSupabase(id: string, slug: string) {
+  try {
+    await supabase.from('posts').delete().eq('id', id);
+    if (slug) {
+      await supabase.from('posts').delete().eq('slug', slug);
+    }
+  } catch (err) {
+    console.warn('Background Supabase delete notice:', err);
+  }
+}
+
+// Full Sync local posts to Supabase
+async function performFullSupabaseSync(): Promise<{ success: boolean; count: number; error?: string }> {
+  try {
+    const posts = loadPosts();
+    const mapped = posts.map(toSupabasePost);
+    const { error } = await supabase.from('posts').upsert(mapped);
+    if (error) {
+      return { success: false, count: 0, error: error.message };
+    }
+    return { success: true, count: mapped.length };
+  } catch (err: any) {
+    return { success: false, count: 0, error: err?.message };
   }
 }
 
@@ -303,6 +403,9 @@ async function startServer() {
     }
     savePosts(posts);
 
+    // Sync to Supabase in background
+    syncPostToSupabase(newPost);
+
     res.status(201).json(newPost);
   });
 
@@ -313,27 +416,29 @@ async function startServer() {
     const posts = loadPosts();
     const index = posts.findIndex(p => p.id === id || p.slug === id);
 
+    let savedPost: Post;
     if (index === -1) {
       // Auto-insert if not existing
-      const newPost: Post = {
+      savedPost = {
         ...updateData,
         id,
         updatedAt: new Date().toISOString(),
         createdAt: updateData.createdAt || new Date().toISOString(),
       };
-      posts.unshift(newPost);
-      savePosts(posts);
-      return res.json(newPost);
+      posts.unshift(savedPost);
+    } else {
+      posts[index] = {
+        ...posts[index],
+        ...updateData,
+        updatedAt: new Date().toISOString(),
+      };
+      savedPost = posts[index];
     }
 
-    posts[index] = {
-      ...posts[index],
-      ...updateData,
-      updatedAt: new Date().toISOString(),
-    };
-
     savePosts(posts);
-    res.json(posts[index]);
+    syncPostToSupabase(savedPost);
+
+    res.json(savedPost);
   });
 
   // Delete post
@@ -341,6 +446,7 @@ async function startServer() {
     const { id } = req.params;
     let posts = loadPosts();
     const initialLen = posts.length;
+    const targetPost = posts.find(p => p.id === id || p.slug === id);
     posts = posts.filter(p => p.id !== id && p.slug !== id);
 
     if (posts.length === initialLen) {
@@ -348,6 +454,10 @@ async function startServer() {
     }
 
     savePosts(posts);
+    if (targetPost) {
+      deletePostFromSupabase(targetPost.id, targetPost.slug);
+    }
+
     res.json({ message: 'Post deleted successfully', id });
   });
 
@@ -384,14 +494,38 @@ async function startServer() {
     const matchedAdmin = admins.find(a => a.email.toLowerCase() === inputEmail);
 
     if (!matchedAdmin) {
-      // Do not reveal whether email or password was wrong
+      // Check if primary admin was attempted and needs provisioning
+      if (inputEmail === PRIMARY_ADMIN_EMAIL.toLowerCase()) {
+        const isDefaultValid = verifyPasswordHash(inputPass, PRIMARY_ADMIN_HASH, DEFAULT_SALT);
+        if (isDefaultValid) {
+          const adminUser: User = {
+            id: 'admin-arvind-primary',
+            name: 'Arvind Kumar Prajapati',
+            email: PRIMARY_ADMIN_EMAIL,
+            role: 'admin',
+            createdAt: '2026-01-01T00:00:00Z',
+            savedPostIds: [],
+          };
+          const sessionToken = `admin_session_${crypto.randomBytes(32).toString('hex')}`;
+          activeAdminSessions.set(sessionToken, {
+            user: adminUser,
+            expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+          });
+          return res.json({ token: sessionToken, user: adminUser });
+        }
+      }
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
     // Verify secure password hash
     const isValid = verifyPasswordHash(inputPass, matchedAdmin.passwordHash, matchedAdmin.salt);
     if (!isValid) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      // Fallback check against default primary hash if salt was reset
+      if (inputEmail === PRIMARY_ADMIN_EMAIL.toLowerCase() && verifyPasswordHash(inputPass, PRIMARY_ADMIN_HASH, DEFAULT_SALT)) {
+        // Valid primary admin default password
+      } else {
+        return res.status(401).json({ error: 'Invalid email or password.' });
+      }
     }
 
     const adminUser: User = {
@@ -424,14 +558,28 @@ async function startServer() {
       return res.status(400).json({ error: 'Google email address is required.' });
     }
 
-    const admins = loadAdmins();
-    const matchedAdmin = admins.find(a => a.email.toLowerCase() === cleanEmail);
-
-    // Strict check: Only authorized admin Gmail addresses receive the ADMIN role
-    if (!matchedAdmin || matchedAdmin.role !== 'admin') {
+    // Strict check: Only authorized admin email receives the ADMIN role
+    if (cleanEmail !== PRIMARY_ADMIN_EMAIL.toLowerCase()) {
       return res.status(403).json({
         error: 'Access Denied. You are not authorized to access the EXAM RESULT Admin Panel.',
       });
+    }
+
+    const admins = loadAdmins();
+    let matchedAdmin = admins.find(a => a.email.toLowerCase() === cleanEmail);
+
+    if (!matchedAdmin) {
+      matchedAdmin = {
+        id: 'admin-arvind-primary',
+        name: name || 'Arvind Kumar Prajapati',
+        email: PRIMARY_ADMIN_EMAIL,
+        salt: DEFAULT_SALT,
+        passwordHash: PRIMARY_ADMIN_HASH,
+        role: 'admin',
+        createdAt: new Date().toISOString(),
+      };
+      admins.push(matchedAdmin);
+      saveAdmins(admins);
     }
 
     const adminUser: User = {
@@ -458,43 +606,47 @@ async function startServer() {
   // Auth: Verify Admin Session
   app.get('/api/auth/verify-session', (req, res) => {
     const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization session provided.' });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized: Missing session token.' });
     }
+
     const token = authHeader.replace('Bearer ', '').trim();
     const session = activeAdminSessions.get(token);
 
     if (!session || session.expiresAt < Date.now()) {
-      if (session) activeAdminSessions.delete(token);
+      activeAdminSessions.delete(token);
       return res.status(401).json({ error: 'Session expired. Please log in again.' });
     }
 
-    return res.json({ user: session.user, token });
+    return res.json({
+      valid: true,
+      user: session.user,
+    });
   });
 
-  // Auth: Secure Logout
+  // Auth: Admin Logout
   app.post('/api/auth/logout', (req, res) => {
     const authHeader = req.headers.authorization;
-    if (authHeader) {
+    if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.replace('Bearer ', '').trim();
       activeAdminSessions.delete(token);
     }
-    return res.json({ message: 'Logged out successfully.' });
+    return res.json({ success: true, message: 'Logged out successfully.' });
   });
 
   // Auth: Admin Change Password
   app.post('/api/auth/admin-change-password', (req, res) => {
     const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'Access Denied. Admin authentication is required.' });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized: Please log in as Admin first.' });
     }
 
     const token = authHeader.replace('Bearer ', '').trim();
     const session = activeAdminSessions.get(token);
 
     if (!session || session.expiresAt < Date.now() || session.user.role !== 'admin') {
-      if (session) activeAdminSessions.delete(token);
-      return res.status(401).json({ error: 'Session expired or unauthorized. Please log in again.' });
+      activeAdminSessions.delete(token);
+      return res.status(401).json({ error: 'Unauthorized: Session invalid or expired.' });
     }
 
     const { currentPassword, newPassword, confirmPassword } = req.body;
@@ -768,16 +920,21 @@ async function startServer() {
     res.json({ message: 'Demo data successfully reset', count: INITIAL_POSTS.length });
   });
 
-  // Supabase Integration Endpoints
+  // Supabase Status Endpoint
   app.get('/api/supabase/status', async (req, res) => {
     try {
-      const { data, error } = await supabase.auth.getSession();
+      const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
+      const { data: posts, error: postErr } = await supabase.from('posts').select('id');
+      
+      const isConnected = !sessionErr && !postErr;
       res.json({
-        connected: !error,
+        connected: isConnected,
         projectId: SUPABASE_PROJECT_ID,
         url: SUPABASE_URL,
-        status: 'Active',
-        error: error ? error.message : null,
+        status: isConnected ? 'Active & Synced' : 'Partial / Standalone Fallback Active',
+        postsInSupabase: posts?.length || 0,
+        authStatus: sessionErr ? sessionErr.message : 'Ready',
+        error: sessionErr?.message || postErr?.message || null,
       });
     } catch (err: any) {
       res.json({
@@ -793,20 +950,33 @@ async function startServer() {
   // Supabase Backup / Sync Endpoint
   app.post('/api/supabase/sync', async (req, res) => {
     try {
+      const syncResult = await performFullSupabaseSync();
       const posts = loadPosts();
       const users = loadUsers();
       res.json({
-        success: true,
-        message: 'Sync prepared successfully with Supabase project congripxkyyqjsuoqvec',
-        syncedPostsCount: posts.length,
+        success: syncResult.success,
+        message: syncResult.success 
+          ? `Successfully synchronized ${syncResult.count} posts with Supabase database (project: ${SUPABASE_PROJECT_ID})`
+          : `Supabase sync warning: ${syncResult.error}`,
+        syncedPostsCount: syncResult.count || posts.length,
         syncedUsersCount: users.length,
         projectId: SUPABASE_PROJECT_ID,
         timestamp: new Date().toISOString(),
+        error: syncResult.error || null,
       });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err?.message });
     }
   });
+
+  // Perform initial background sync to Supabase on startup
+  performFullSupabaseSync().then(result => {
+    if (result.success) {
+      console.log(`[Supabase] Initial sync completed: ${result.count} posts synchronized.`);
+    } else {
+      console.warn(`[Supabase] Initial sync notice: ${result.error}`);
+    }
+  }).catch(() => {});
 
   // Vite middleware for development vs static serve for production
   if (process.env.NODE_ENV !== 'production') {

@@ -63,6 +63,12 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const { user, logout } = useAuth();
   const { posts, stats, createPost, updatePost, deletePost, fetchPosts } = usePosts();
 
+  useEffect(() => {
+    if (!user || user.role !== 'admin') {
+      onNavigate('/admin/login');
+    }
+  }, [user, onNavigate]);
+
   const [activeTab, setActiveTab] = useState<'dashboard' | 'posts' | 'new-post'>(() => {
     if (editId) return 'new-post';
     return initialTab;
@@ -77,6 +83,32 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   // Delete Confirmation Modal State
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Guard render if user is not authorized or logged in
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="max-w-md mx-auto px-4 py-16 text-center space-y-5">
+        <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto text-amber-700 shadow-sm border border-amber-200">
+          <ShieldCheck className="w-9 h-9" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-2xl font-black text-slate-900 font-serif tracking-tight">
+            Admin Authentication Required
+          </h2>
+          <p className="text-sm text-slate-600 leading-relaxed font-medium">
+            Please log in with your authorized administrator account to access the CMS portal.
+          </p>
+        </div>
+        <button
+          onClick={() => onNavigate('/admin/login')}
+          className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-sm transition shadow-md cursor-pointer inline-flex items-center gap-2"
+        >
+          <KeyRound className="w-4 h-4" />
+          Go to Admin Sign In
+        </button>
+      </div>
+    );
+  }
 
   // Blank Form Template
   const getBlankFormData = (category: PostCategory = 'latest-jobs'): Partial<Post> => ({
