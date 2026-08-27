@@ -380,8 +380,8 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
           </div>
         </div>
 
-        {/* 6. Important Dates & Application Fee 2-Column Responsive Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* 6. Important Dates & Application Fee Responsive Layout */}
+        <div className={`grid grid-cols-1 ${post.applicationFee?.enabled !== false && (post.applicationFee?.generalObc || post.applicationFee?.scSt) ? 'md:grid-cols-2' : ''} gap-4`}>
           {/* Important Dates Column */}
           <div className="rounded-lg border-2 border-emerald-600 overflow-hidden bg-white">
             <div className="bg-emerald-700 text-white px-3.5 py-2 font-black text-sm uppercase tracking-wide font-serif flex items-center justify-between">
@@ -392,19 +392,23 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
               <span className="text-[11px] font-sans font-normal text-emerald-100">Schedule</span>
             </div>
             <div className="p-3.5 space-y-2 text-xs sm:text-sm">
-              <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                <span className="text-slate-700 font-medium">Application Begin :</span>
-                <span className="font-bold text-slate-900">
-                  {post.importantDates?.applicationBegin || 'Available Now'}
-                </span>
-              </div>
+              {post.importantDates?.applicationBegin && (
+                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span className="text-slate-700 font-medium">Application Begin :</span>
+                  <span className="font-bold text-slate-900">
+                    {post.importantDates.applicationBegin}
+                  </span>
+                </div>
+              )}
 
-              <div className="flex justify-between items-center py-1 border-b border-slate-100 bg-red-50/60 px-1.5 rounded">
-                <span className="text-red-900 font-bold">Last Date for Apply Online :</span>
-                <span className="font-extrabold text-red-700">
-                  {post.importantDates?.lastDate || 'Notified Soon'}
-                </span>
-              </div>
+              {post.importantDates?.lastDate && (
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 bg-red-50/60 px-1.5 rounded">
+                  <span className="text-red-900 font-bold">Last Date for Apply Online :</span>
+                  <span className="font-extrabold text-red-700">
+                    {post.importantDates.lastDate}
+                  </span>
+                </div>
+              )}
 
               {post.importantDates?.feePaymentLastDate && (
                 <div className="flex justify-between items-center py-1 border-b border-slate-100">
@@ -424,124 +428,162 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
                 </div>
               )}
 
-              <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                <span className="text-slate-700 font-medium">Exam Date :</span>
-                <span className="font-bold text-blue-900">
-                  {post.importantDates?.examDate || 'As per Schedule'}
-                </span>
-              </div>
+              {post.importantDates?.examDate && (
+                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span className="text-slate-700 font-medium">Exam Date :</span>
+                  <span className="font-bold text-blue-900">
+                    {post.importantDates.examDate}
+                  </span>
+                </div>
+              )}
 
-              <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                <span className="text-slate-700 font-medium">Admit Card Available :</span>
-                <span className="font-bold text-slate-900">
-                  {post.importantDates?.admitCardDate || 'Before Examination'}
-                </span>
-              </div>
+              {post.importantDates?.admitCardDate && (
+                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span className="text-slate-700 font-medium">Admit Card Available :</span>
+                  <span className="font-bold text-slate-900">
+                    {post.importantDates.admitCardDate}
+                  </span>
+                </div>
+              )}
+
+              {post.importantDates?.answerKeyDate && (
+                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span className="text-slate-700 font-medium">Answer Key Available :</span>
+                  <span className="font-bold text-amber-700">
+                    {post.importantDates.answerKeyDate}
+                  </span>
+                </div>
+              )}
+
+              {post.importantDates?.objectionLastDate && (
+                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span className="text-slate-700 font-medium">Objection Last Date :</span>
+                  <span className="font-bold text-red-700">
+                    {post.importantDates.objectionLastDate}
+                  </span>
+                </div>
+              )}
 
               {post.importantDates?.resultDate && (
-                <div className="flex justify-between items-center py-1">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100">
                   <span className="text-slate-700 font-medium">Result Available :</span>
                   <span className="font-bold text-emerald-800">
                     {post.importantDates.resultDate}
                   </span>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Application Fee Column */}
-          <div className="rounded-lg border-2 border-emerald-600 overflow-hidden bg-white">
-            <div className="bg-emerald-700 text-white px-3.5 py-2 font-black text-sm uppercase tracking-wide font-serif flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <CreditCard className="w-4 h-4 text-emerald-200" />
-                Application Fee
-              </span>
-              <span className="text-[11px] font-sans font-normal text-emerald-100">
-                Fee Details
-              </span>
-            </div>
-            <div className="p-3.5 space-y-2 text-xs sm:text-sm">
-              <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                <span className="text-slate-700 font-medium">General / OBC / EWS :</span>
-                <span className="font-bold text-slate-900">
-                  {post.applicationFee?.generalObc || '₹ 0/-'}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                <span className="text-slate-700 font-medium">SC / ST :</span>
-                <span className="font-bold text-slate-900">
-                  {post.applicationFee?.scSt || '₹ 0/-'}
-                </span>
-              </div>
-
-              {post.applicationFee?.phFemale && (
-                <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                  <span className="text-slate-700 font-medium">All Category Female / PH :</span>
-                  <span className="font-bold text-slate-900">{post.applicationFee.phFemale}</span>
+              {post.importantDates?.customDates && post.importantDates.customDates.map(cd => (
+                <div key={cd.id} className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span className="text-slate-700 font-medium">{cd.label} :</span>
+                  <span className="font-bold text-slate-900">{cd.value}</span>
                 </div>
-              )}
+              ))}
+            </div>
+          </div>
 
-              <div className="py-1 border-b border-slate-100">
-                <span className="text-slate-700 font-semibold block text-xs mb-0.5">
-                  Payment Mode :
+          {/* Application Fee Column (Optional) */}
+          {post.applicationFee?.enabled !== false && (post.applicationFee?.generalObc || post.applicationFee?.scSt || post.applicationFee?.paymentMode) && (
+            <div className="rounded-lg border-2 border-emerald-600 overflow-hidden bg-white">
+              <div className="bg-emerald-700 text-white px-3.5 py-2 font-black text-sm uppercase tracking-wide font-serif flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-emerald-200" />
+                  Application Fee
                 </span>
-                <span className="font-medium text-slate-800 text-xs">
-                  {post.applicationFee?.paymentMode ||
-                    'Pay the Examination Fee Through Debit Card, Credit Card, Net Banking, UPI or SBI E-Challan'}
+                <span className="text-[11px] font-sans font-normal text-emerald-100">
+                  Fee Details
+                </span>
+              </div>
+              <div className="p-3.5 space-y-2 text-xs sm:text-sm">
+                {post.applicationFee?.generalObc && (
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-700 font-medium">General / OBC / EWS :</span>
+                    <span className="font-bold text-slate-900">
+                      {post.applicationFee.generalObc}
+                    </span>
+                  </div>
+                )}
+
+                {post.applicationFee?.scSt && (
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-700 font-medium">SC / ST :</span>
+                    <span className="font-bold text-slate-900">
+                      {post.applicationFee.scSt}
+                    </span>
+                  </div>
+                )}
+
+                {post.applicationFee?.phFemale && (
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-700 font-medium">All Category Female / PH :</span>
+                    <span className="font-bold text-slate-900">{post.applicationFee.phFemale}</span>
+                  </div>
+                )}
+
+                {post.applicationFee?.paymentMode && (
+                  <div className="py-1 border-b border-slate-100">
+                    <span className="text-slate-700 font-semibold block text-xs mb-0.5">
+                      Payment Mode :
+                    </span>
+                    <span className="font-medium text-slate-800 text-xs">
+                      {post.applicationFee.paymentMode}
+                    </span>
+                  </div>
+                )}
+
+                {post.applicationFee?.notes && (
+                  <p className="text-[11px] text-slate-500 italic pt-1">{post.applicationFee.notes}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 7. Age Limit Details Section (Optional) */}
+        {post.ageLimit?.enabled !== false && (post.ageLimit?.minAge || post.ageLimit?.maxAge || post.ageLimit?.asOfDate) && (
+          <div className="rounded-lg border-2 border-emerald-600 bg-emerald-50/20 p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200 pb-2 mb-3">
+              <h3 className="text-sm sm:text-base font-black text-emerald-950 font-serif flex items-center gap-1.5">
+                <UserCheck className="w-4 h-4 text-emerald-700" />
+                <span>
+                  {organizationName} : Age Limit as on {post.ageLimit?.asOfDate || '01/07/2026'}
+                </span>
+              </h3>
+
+              <button
+                onClick={() => setShowAgeCalc(true)}
+                className="inline-flex items-center gap-1 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-1 rounded transition self-start sm:self-auto cursor-pointer"
+              >
+                <Calculator className="w-3.5 h-3.5" />
+                <span>Age Calculator</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm">
+              <div className="bg-white p-2.5 rounded border border-emerald-200">
+                <span className="text-slate-500 block text-xs">Minimum Age :</span>
+                <span className="font-bold text-slate-900 text-sm">
+                  {post.ageLimit?.minAge ? `${post.ageLimit.minAge} Years.` : '18 Years (or as per rules)'}
                 </span>
               </div>
 
-              {post.applicationFee?.notes && (
-                <p className="text-[11px] text-slate-500 italic pt-1">{post.applicationFee.notes}</p>
-              )}
+              <div className="bg-white p-2.5 rounded border border-emerald-200">
+                <span className="text-slate-500 block text-xs">Maximum Age :</span>
+                <span className="font-bold text-slate-900 text-sm">
+                  {post.ageLimit?.maxAge ? `${post.ageLimit.maxAge} Years.` : 'No Upper Limit / As per Post'}
+                </span>
+              </div>
+
+              <div className="bg-white p-2.5 rounded border border-emerald-200 sm:col-span-3 lg:col-span-1">
+                <span className="text-slate-500 block text-xs">Age Relaxation :</span>
+                <span className="font-semibold text-slate-800 text-xs">
+                  {post.ageLimit?.relaxationDetails ||
+                    'Age Relaxation Extra as per Official Recruitment Rules.'}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* 7. Age Limit Details Section with Interactive Calculator */}
-        <div className="rounded-lg border-2 border-emerald-600 bg-emerald-50/20 p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200 pb-2 mb-3">
-            <h3 className="text-sm sm:text-base font-black text-emerald-950 font-serif flex items-center gap-1.5">
-              <UserCheck className="w-4 h-4 text-emerald-700" />
-              <span>
-                {organizationName} : Age Limit as on {post.ageLimit?.asOfDate || '01/07/2026'}
-              </span>
-            </h3>
-
-            <button
-              onClick={() => setShowAgeCalc(true)}
-              className="inline-flex items-center gap-1 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-1 rounded transition self-start sm:self-auto cursor-pointer"
-            >
-              <Calculator className="w-3.5 h-3.5" />
-              <span>Age Calculator</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm">
-            <div className="bg-white p-2.5 rounded border border-emerald-200">
-              <span className="text-slate-500 block text-xs">Minimum Age :</span>
-              <span className="font-bold text-slate-900 text-sm">
-                {post.ageLimit?.minAge ? `${post.ageLimit.minAge} Years.` : '18 Years (or as per rules)'}
-              </span>
-            </div>
-
-            <div className="bg-white p-2.5 rounded border border-emerald-200">
-              <span className="text-slate-500 block text-xs">Maximum Age :</span>
-              <span className="font-bold text-slate-900 text-sm">
-                {post.ageLimit?.maxAge ? `${post.ageLimit.maxAge} Years.` : 'No Upper Limit / As per Post'}
-              </span>
-            </div>
-
-            <div className="bg-white p-2.5 rounded border border-emerald-200 sm:col-span-3 lg:col-span-1">
-              <span className="text-slate-500 block text-xs">Age Relaxation :</span>
-              <span className="font-semibold text-slate-800 text-xs">
-                {post.ageLimit?.relaxationDetails ||
-                  'Age Relaxation Extra as per Official Recruitment Rules (OBC: 3 Years, SC/ST: 5 Years).'}
-              </span>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* 8. Vacancy Details Section (Bordered Portal Table) */}
         {post.vacancyDetails && post.vacancyDetails.length > 0 && (
@@ -673,7 +715,7 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
         {/* 12. Important Instructions Banner */}
         <div className="bg-red-50 border-2 border-red-500 p-3.5 rounded-lg text-center text-xs sm:text-sm text-red-950 font-bold leading-relaxed space-y-1">
           <p className="text-red-700 uppercase tracking-wide">
-            ★ Interested Candidates Can Read the Full {postTitle} Notification Before Apply Online ★
+            ★ {post.importantInstructions || `Interested Candidates Can Read the Full ${postTitle} Notification Before Apply Online`} ★
           </p>
         </div>
 
@@ -725,8 +767,10 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
           <div className="overflow-x-auto rounded-b-lg border-2 border-red-700 bg-white">
             <table className="min-w-full divide-y divide-slate-200 text-xs sm:text-sm">
               <tbody className="divide-y divide-slate-200">
-                {post.importantLinks && post.importantLinks.length > 0 ? (
-                  post.importantLinks.map((lnk, idx) => (
+                {post.importantLinks && post.importantLinks.filter(l => l.enabled !== false && l.url && l.url.trim() !== '#' && l.url.trim() !== '').length > 0 ? (
+                  post.importantLinks
+                    .filter(l => l.enabled !== false && l.url && l.url.trim() !== '#' && l.url.trim() !== '')
+                    .map((lnk, idx) => (
                     <tr key={lnk.id || idx} className="hover:bg-red-50/30 transition">
                       <td className="py-2.5 px-3.5 font-extrabold text-slate-900 border-r border-slate-200">
                         <div className="flex items-center gap-1.5">

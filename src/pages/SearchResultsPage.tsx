@@ -23,6 +23,7 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({
   const [selectedCat, setSelectedCat] = useState(initialCategory);
 
   const results = posts.filter(p => {
+    if (p.status !== 'published') return false;
     if (selectedCat !== 'all' && p.category !== selectedCat) return false;
     if (!query.trim()) return true;
     const q = query.toLowerCase().trim();

@@ -172,12 +172,22 @@ const AppContent: React.FC = () => {
       return <UserProfilePage onSelectPost={handleSelectPost} onNavigate={navigate} />;
     }
 
-    // 7. Admin Panel
+    // 7. Admin Panel Routes
     if (safePath === '/admin/login' || safePath === '/admin') {
       return <AdminAuthPage onNavigate={navigate} />;
     }
     if (safePath === '/admin/dashboard') {
-      return <AdminDashboardPage onNavigate={navigate} onSelectPost={handleSelectPost} />;
+      return <AdminDashboardPage onNavigate={navigate} onSelectPost={handleSelectPost} initialTab="dashboard" />;
+    }
+    if (safePath === '/admin/posts') {
+      return <AdminDashboardPage onNavigate={navigate} onSelectPost={handleSelectPost} initialTab="posts" />;
+    }
+    if (safePath === '/admin/posts/new') {
+      return <AdminDashboardPage onNavigate={navigate} onSelectPost={handleSelectPost} initialTab="new-post" />;
+    }
+    if (safePath.startsWith('/admin/posts/edit/')) {
+      const editId = safePath.replace('/admin/posts/edit/', '').split('?')[0];
+      return <AdminDashboardPage onNavigate={navigate} onSelectPost={handleSelectPost} initialTab="new-post" editId={editId} />;
     }
 
     // 8. Static Information Pages

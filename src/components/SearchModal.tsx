@@ -45,6 +45,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
   const filteredPosts = posts
     .filter(p => {
+      if (p.status !== 'published') return false;
       if (selectedCategory !== 'all' && p.category !== selectedCategory) return false;
       if (!query.trim()) return true;
       const q = query.toLowerCase().trim();

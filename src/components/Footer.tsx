@@ -154,14 +154,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   Legal Disclaimer
                 </button>
               </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('/admin/login')}
-                  className="text-amber-400 hover:text-amber-300 font-semibold hover:underline"
-                >
-                  Admin Control Panel Login
-                </button>
-              </li>
             </ul>
           </div>
 

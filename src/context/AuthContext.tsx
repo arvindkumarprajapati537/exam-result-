@@ -3,7 +3,8 @@ import { User, AuthState } from '../types';
 
 interface AuthContextType extends AuthState {
   login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
-  adminLogin: (userOrEmail: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  adminLogin: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  googleLogin: (email: string, name?: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   toggleFavorite: (postId: string) => Promise<boolean>;
@@ -26,6 +27,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return localStorage.getItem('examresult_token');
   });
 
+  // Verify active session with backend on mount
+  useEffect(() => {
+    if (token) {
+      fetch('/api/auth/verify-session', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(res => {
+          if (!res.ok) {
+            // Token is invalid/expired
+            if (user?.role === 'admin') {
+              setUser(null);
+              setToken(null);
+              localStorage.removeItem('examresult_user');
+              localStorage.removeItem('examresult_token');
+            }
+          }
+        })
+        .catch(() => {
+          // Ignore network errors on session check
+        });
+    }
+  }, []);
+
   useEffect(() => {
     if (user) {
       localStorage.setItem('examresult_user', JSON.stringify(user));
@@ -43,133 +67,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const cleanEmail = (email || '').toLowerCase().trim();
     const cleanPass = (pass || '').trim();
 
-    // Check if admin credentials
-    const isAdminUser =
-      cleanEmail === 'arvindkumarprajapati537@gmail.com' ||
-      cleanEmail === 'admin' ||
-      cleanEmail === 'admin@examresult.gov.in' ||
-      cleanEmail === 'admin@examresult.com' ||
-      cleanEmail === 'arvind';
-
-    const isValidAdminPass =
-      cleanPass === 'Arvind@2000' ||
-      cleanPass === 'admin123' ||
-      cleanPass === 'admin' ||
-      cleanPass === 'arvind' ||
-      cleanPass.toLowerCase() === 'arvind@2000';
-
-    if (isAdminUser && isValidAdminPass) {
-      const adminUser: User = {
-        id: 'user-admin-arvind',
-        name: cleanEmail === 'admin' || cleanEmail.includes('admin@') ? 'Portal Administrator' : 'Arvind Kumar Prajapati',
-        email: cleanEmail === 'admin' ? 'admin@examresult.gov.in' : cleanEmail,
-        role: 'admin',
-        createdAt: new Date().toISOString(),
-        savedPostIds: [],
-      };
-      setUser(adminUser);
-      setToken('token-admin-arvind-active');
-      localStorage.setItem('examresult_user', JSON.stringify(adminUser));
-      localStorage.setItem('examresult_token', 'token-admin-arvind-active');
-      return { success: true };
-    }
-
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
       });
-      const contentType = res.headers.get('content-type') || '';
-      if (res.ok && contentType.includes('application/json')) {
-        const data = await res.json();
+      const data = await res.json();
+      if (res.ok && data.user) {
         setUser(data.user);
         setToken(data.token);
-        localStorage.setItem('examresult_user', JSON.stringify(data.user));
-        localStorage.setItem('examresult_token', data.token);
         return { success: true };
       }
+      return { success: false, error: data.error || 'Invalid email or password.' };
     } catch (err: any) {
-      console.warn('API login network fallback active');
+      return { success: false, error: 'Network connection error. Please try again.' };
     }
-
-    // Standard Candidate login fallback
-    if (cleanEmail && cleanPass.length >= 3) {
-      const demoUser: User = {
-        id: `user-${Date.now()}`,
-        name: cleanEmail.split('@')[0].toUpperCase(),
-        email: cleanEmail,
-        role: 'user',
-        createdAt: new Date().toISOString(),
-        savedPostIds: [],
-      };
-      setUser(demoUser);
-      setToken(`token-${demoUser.id}`);
-      localStorage.setItem('examresult_user', JSON.stringify(demoUser));
-      localStorage.setItem('examresult_token', `token-${demoUser.id}`);
-      return { success: true };
-    }
-
-    return { success: false, error: 'Invalid login details. Please check your email and password.' };
   };
 
-  const adminLogin = async (usernameOrEmail: string, pass: string) => {
-    const cleanId = (usernameOrEmail || '').toLowerCase().trim();
+  const adminLogin = async (email: string, pass: string) => {
+    const cleanEmail = (email || '').toLowerCase().trim();
     const cleanPass = (pass || '').trim();
-
-    const isAdminUser =
-      cleanId === 'arvindkumarprajapati537@gmail.com' ||
-      cleanId === 'admin' ||
-      cleanId === 'admin@examresult.gov.in' ||
-      cleanId === 'admin@examresult.com' ||
-      cleanId === 'arvind';
-
-    const isValidAdminPass =
-      cleanPass === 'Arvind@2000' ||
-      cleanPass === 'admin123' ||
-      cleanPass === 'admin' ||
-      cleanPass === 'arvind' ||
-      cleanPass.toLowerCase() === 'arvind@2000';
-
-    if (isAdminUser && isValidAdminPass) {
-      const adminUser: User = {
-        id: 'user-admin-arvind',
-        name: cleanId === 'admin' || cleanId.includes('admin@') ? 'Portal Administrator' : 'Arvind Kumar Prajapati',
-        email: cleanId === 'admin' ? 'admin@examresult.gov.in' : cleanId,
-        role: 'admin',
-        createdAt: new Date().toISOString(),
-        savedPostIds: [],
-      };
-      setUser(adminUser);
-      setToken('token-admin-arvind-active');
-      localStorage.setItem('examresult_user', JSON.stringify(adminUser));
-      localStorage.setItem('examresult_token', 'token-admin-arvind-active');
-      return { success: true };
-    }
 
     try {
       const res = await fetch('/api/auth/admin-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usernameOrEmail: cleanId, password: cleanPass }),
+        body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
       });
-      const contentType = res.headers.get('content-type') || '';
-      if (res.ok && contentType.includes('application/json')) {
-        const data = await res.json();
+      const data = await res.json();
+      if (res.ok && data.user && data.user.role === 'admin') {
         setUser(data.user);
         setToken(data.token);
-        localStorage.setItem('examresult_user', JSON.stringify(data.user));
-        localStorage.setItem('examresult_token', data.token);
         return { success: true };
       }
+      return { success: false, error: data.error || 'Invalid email or password.' };
     } catch (err: any) {
-      console.warn('API admin login network fallback active');
+      return { success: false, error: 'Network error communicating with authentication service.' };
     }
+  };
 
-    return {
-      success: false,
-      error: 'Invalid administrator credentials. Please check your username/email and password.',
-    };
+  const googleLogin = async (email: string, name?: string) => {
+    const cleanEmail = (email || '').toLowerCase().trim();
+    try {
+      const res = await fetch('/api/auth/google-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, name: name || 'Arvind Kumar Prajapati' }),
+      });
+      const data = await res.json();
+      if (res.ok && data.user && data.user.role === 'admin') {
+        setUser(data.user);
+        setToken(data.token);
+        return { success: true };
+      }
+      return {
+        success: false,
+        error: data.error || 'Access Denied. You are not authorized to access the EXAM RESULT Admin Panel.',
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: 'Access Denied. You are not authorized to access the EXAM RESULT Admin Panel.',
+      };
+    }
   };
 
   const register = async (name: string, email: string, pass: string) => {
@@ -263,6 +224,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: user?.role === 'admin',
         login,
         adminLogin,
+        googleLogin,
         register,
         logout,
         toggleFavorite,

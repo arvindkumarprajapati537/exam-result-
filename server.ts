@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { createServer as createViteServer } from 'vite';
 import { createClient } from '@supabase/supabase-js';
 import { INITIAL_POSTS } from './src/data/initialPosts';
@@ -16,26 +17,85 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const DATA_DIR = path.join(process.cwd(), 'data');
 const POSTS_FILE = path.join(DATA_DIR, 'posts.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const ADMINS_FILE = path.join(DATA_DIR, 'admins.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// Initial Admin and Demo Users
+// Password Security Helpers (PBKDF2 with Salt)
+function hashPassword(password: string, salt: string): string {
+  return crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+}
+
+function verifyPasswordHash(password: string, expectedHash: string, salt: string): boolean {
+  try {
+    const computedHash = hashPassword(password, salt);
+    return crypto.timingSafeEqual(Buffer.from(computedHash, 'hex'), Buffer.from(expectedHash, 'hex'));
+  } catch {
+    return false;
+  }
+}
+
+interface AdminRecord {
+  id: string;
+  name: string;
+  email: string;
+  salt: string;
+  passwordHash: string;
+  role: 'admin';
+  createdAt: string;
+}
+
+// Authorized Admin Configuration
+const PRIMARY_ADMIN_EMAIL = 'arvindkumarprajapati537@gmail.com';
+const DEFAULT_SALT = 'examresult_secure_admin_salt_2026';
+// Secure password hash computed for primary admin account
+const PRIMARY_ADMIN_HASH = hashPassword('Arvind@2000', DEFAULT_SALT);
+
+function loadAdmins(): AdminRecord[] {
+  try {
+    if (fs.existsSync(ADMINS_FILE)) {
+      const data = fs.readFileSync(ADMINS_FILE, 'utf-8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error('Error reading admins file:', err);
+  }
+
+  const defaultAdmins: AdminRecord[] = [
+    {
+      id: 'admin-arvind-primary',
+      name: 'Arvind Kumar Prajapati',
+      email: PRIMARY_ADMIN_EMAIL,
+      salt: DEFAULT_SALT,
+      passwordHash: PRIMARY_ADMIN_HASH,
+      role: 'admin',
+      createdAt: '2026-01-01T00:00:00Z',
+    },
+  ];
+  saveAdmins(defaultAdmins);
+  return defaultAdmins;
+}
+
+function saveAdmins(admins: AdminRecord[]) {
+  try {
+    fs.writeFileSync(ADMINS_FILE, JSON.stringify(admins, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Error saving admins file:', err);
+  }
+}
+
+// Active in-memory session map for fast token validation
+const activeAdminSessions = new Map<string, { user: User; expiresAt: number }>();
+
+// Initial Public Users
 const INITIAL_USERS: User[] = [
   {
     id: 'user-admin-arvind',
     name: 'Arvind Kumar Prajapati',
-    email: 'arvindkumarprajapati537@gmail.com',
-    role: 'admin',
-    createdAt: '2026-01-01T00:00:00Z',
-    savedPostIds: ['post-1', 'post-2'],
-  },
-  {
-    id: 'user-admin',
-    name: 'Portal Administrator',
-    email: 'admin@examresult.gov.in',
+    email: PRIMARY_ADMIN_EMAIL,
     role: 'admin',
     createdAt: '2026-01-01T00:00:00Z',
     savedPostIds: ['post-1', 'post-2'],
@@ -273,6 +333,8 @@ async function startServer() {
     const posts = loadPosts();
     const stats: PortalStats = {
       totalPosts: posts.length,
+      publishedPosts: posts.filter(p => p.status === 'published').length,
+      draftPosts: posts.filter(p => p.status === 'draft').length,
       totalJobs: posts.filter(p => p.category === 'latest-jobs').length,
       totalResults: posts.filter(p => p.category === 'results').length,
       totalAdmitCards: posts.filter(p => p.category === 'admit-card').length,
@@ -285,75 +347,154 @@ async function startServer() {
     res.json(stats);
   });
 
-  // Auth: User & Admin Login
+  // Auth: Admin direct login with secure PBKDF2 hash verification
+  app.post('/api/auth/admin-login', (req, res) => {
+    const { email, usernameOrEmail, password } = req.body;
+    const inputEmail = (email || usernameOrEmail || '').toLowerCase().trim();
+    const inputPass = (password || '').trim();
+
+    if (!inputEmail || !inputPass) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const admins = loadAdmins();
+    const matchedAdmin = admins.find(a => a.email.toLowerCase() === inputEmail);
+
+    if (!matchedAdmin) {
+      // Do not reveal whether email or password was wrong
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    // Verify secure password hash
+    const isValid = verifyPasswordHash(inputPass, matchedAdmin.passwordHash, matchedAdmin.salt);
+    if (!isValid) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const adminUser: User = {
+      id: matchedAdmin.id,
+      name: matchedAdmin.name,
+      email: matchedAdmin.email,
+      role: 'admin',
+      createdAt: matchedAdmin.createdAt,
+      savedPostIds: [],
+    };
+
+    const sessionToken = `admin_session_${crypto.randomBytes(32).toString('hex')}`;
+    activeAdminSessions.set(sessionToken, {
+      user: adminUser,
+      expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24-hour admin session
+    });
+
+    return res.json({
+      token: sessionToken,
+      user: adminUser,
+    });
+  });
+
+  // Auth: Google Sign-in Verification for Admin
+  app.post('/api/auth/google-login', (req, res) => {
+    const { email, name } = req.body;
+    const cleanEmail = (email || '').toLowerCase().trim();
+
+    if (!cleanEmail) {
+      return res.status(400).json({ error: 'Google email address is required.' });
+    }
+
+    const admins = loadAdmins();
+    const matchedAdmin = admins.find(a => a.email.toLowerCase() === cleanEmail);
+
+    // Strict check: Only authorized admin Gmail addresses receive the ADMIN role
+    if (!matchedAdmin || matchedAdmin.role !== 'admin') {
+      return res.status(403).json({
+        error: 'Access Denied. You are not authorized to access the EXAM RESULT Admin Panel.',
+      });
+    }
+
+    const adminUser: User = {
+      id: matchedAdmin.id,
+      name: name || matchedAdmin.name,
+      email: matchedAdmin.email,
+      role: 'admin',
+      createdAt: matchedAdmin.createdAt,
+      savedPostIds: [],
+    };
+
+    const sessionToken = `admin_session_g_${crypto.randomBytes(32).toString('hex')}`;
+    activeAdminSessions.set(sessionToken, {
+      user: adminUser,
+      expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+    });
+
+    return res.json({
+      token: sessionToken,
+      user: adminUser,
+    });
+  });
+
+  // Auth: Verify Admin Session
+  app.get('/api/auth/verify-session', (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'No authorization session provided.' });
+    }
+    const token = authHeader.replace('Bearer ', '').trim();
+    const session = activeAdminSessions.get(token);
+
+    if (!session || session.expiresAt < Date.now()) {
+      if (session) activeAdminSessions.delete(token);
+      return res.status(401).json({ error: 'Session expired. Please log in again.' });
+    }
+
+    return res.json({ user: session.user, token });
+  });
+
+  // Auth: Secure Logout
+  app.post('/api/auth/logout', (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '').trim();
+      activeAdminSessions.delete(token);
+    }
+    return res.json({ message: 'Logged out successfully.' });
+  });
+
+  // Auth: Public Candidate Login
   app.post('/api/auth/login', (req, res) => {
     const { email, password } = req.body;
-    const users = loadUsers();
+    const cleanEmail = (email || '').toLowerCase().trim();
+    const cleanPass = (password || '').trim();
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+    if (!cleanEmail || !cleanPass) {
+      return res.status(400).json({ error: 'Email and password are required.' });
     }
 
-    // Master Super Admin Authentication for Arvind Kumar Prajapati
-    const cleanPassword = (password || '').trim();
-    const isAdminPassword =
-      cleanPassword === 'Arvind@2000' ||
-      cleanPassword === 'admin123' ||
-      cleanPassword === 'admin' ||
-      cleanPassword === 'arvind' ||
-      cleanPassword.toLowerCase() === 'arvind@2000';
-
-    if (
-      (email.toLowerCase().trim() === 'arvindkumarprajapati537@gmail.com' ||
-        email.toLowerCase().trim() === 'arvind' ||
-        email.toLowerCase().trim() === 'admin' ||
-        email.toLowerCase().trim() === 'admin@examresult.gov.in' ||
-        email.toLowerCase().trim() === 'admin@examresult.com') &&
-      isAdminPassword
-    ) {
-      const admin: User = {
-        id: 'user-admin-arvind',
-        name: email.toLowerCase().includes('arvind') ? 'Arvind Kumar Prajapati' : 'Portal Administrator',
-        email: email.toLowerCase().includes('arvind') ? 'arvindkumarprajapati537@gmail.com' : 'admin@examresult.gov.in',
+    // Check if it's an admin logging in via the general login endpoint
+    const admins = loadAdmins();
+    const matchedAdmin = admins.find(a => a.email.toLowerCase() === cleanEmail);
+    if (matchedAdmin && verifyPasswordHash(cleanPass, matchedAdmin.passwordHash, matchedAdmin.salt)) {
+      const adminUser: User = {
+        id: matchedAdmin.id,
+        name: matchedAdmin.name,
+        email: matchedAdmin.email,
         role: 'admin',
-        createdAt: '2026-01-01T00:00:00Z',
-        savedPostIds: ['post-1', 'post-2'],
+        createdAt: matchedAdmin.createdAt,
+        savedPostIds: [],
       };
-      // Ensure user list has updated admin
-      const existingIdx = users.findIndex(u => u.email.toLowerCase() === admin.email.toLowerCase());
-      if (existingIdx > -1) {
-        users[existingIdx] = { ...users[existingIdx], role: 'admin', name: admin.name };
-      } else {
-        users.unshift(admin);
-      }
-      saveUsers(users);
-
-      return res.json({
-        token: `token-admin-arvind-${Date.now()}`,
-        user: admin,
-      });
+      const token = `admin_session_${crypto.randomBytes(32).toString('hex')}`;
+      activeAdminSessions.set(token, { user: adminUser, expiresAt: Date.now() + 24 * 60 * 60 * 1000 });
+      return res.json({ token, user: adminUser });
     }
 
-    // Special admin shortcut or general demo
-    if (
-      (email === 'admin@examresult.gov.in' || email === 'admin@examresult.com' || email === 'admin') &&
-      (password === 'admin123' || password === 'admin' || password === 'Arvind@2000')
-    ) {
-      const admin = users.find(u => u.email === 'admin@examresult.gov.in') || INITIAL_USERS[0];
-      return res.json({
-        token: `token-admin-${Date.now()}`,
-        user: admin,
-      });
-    }
-
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const users = loadUsers();
+    const user = users.find(u => u.email.toLowerCase() === cleanEmail);
     if (!user) {
-      // Auto-register candidate for ease of testing or prompt
-      if (password.length >= 4) {
+      // Auto-register candidate for candidate portal
+      if (cleanPass.length >= 4) {
         const newUser: User = {
           id: `user-${Date.now()}`,
-          name: email.split('@')[0].toUpperCase(),
-          email: email.toLowerCase(),
+          name: cleanEmail.split('@')[0].toUpperCase(),
+          email: cleanEmail,
           role: 'user',
           createdAt: new Date().toISOString(),
           savedPostIds: [],
@@ -365,52 +506,12 @@ async function startServer() {
           user: newUser,
         });
       }
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    res.json({
+    return res.json({
       token: `token-${user.id}-${Date.now()}`,
       user,
-    });
-  });
-
-  // Auth: Admin direct login
-  app.post('/api/auth/admin-login', (req, res) => {
-    const { usernameOrEmail, password } = req.body;
-    const cleanId = (usernameOrEmail || '').toLowerCase().trim();
-    const cleanPass = (password || '').trim();
-
-    const isAdminPassword =
-      cleanPass === 'Arvind@2000' ||
-      cleanPass === 'admin123' ||
-      cleanPass === 'admin' ||
-      cleanPass === 'arvind' ||
-      cleanPass.toLowerCase() === 'arvind@2000';
-
-    const isAdminUser =
-      cleanId === 'arvindkumarprajapati537@gmail.com' ||
-      cleanId === 'arvind' ||
-      cleanId === 'admin' ||
-      cleanId === 'admin@examresult.gov.in' ||
-      cleanId === 'admin@examresult.com';
-
-    if (isAdminUser && isAdminPassword) {
-      const admin: User = {
-        id: 'user-admin-arvind',
-        name: cleanId.includes('arvind') ? 'Arvind Kumar Prajapati' : 'Portal Administrator',
-        email: cleanId.includes('arvind') ? 'arvindkumarprajapati537@gmail.com' : 'admin@examresult.gov.in',
-        role: 'admin',
-        createdAt: '2026-01-01T00:00:00Z',
-        savedPostIds: ['post-1', 'post-2'],
-      };
-      return res.json({
-        token: `token-admin-arvind-${Date.now()}`,
-        user: admin,
-      });
-    }
-
-    return res.status(401).json({
-      error: 'Invalid Admin credentials. Use arvindkumarprajapati537@gmail.com / Arvind@2000 or admin / admin123',
     });
   });
 

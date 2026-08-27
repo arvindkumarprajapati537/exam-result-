@@ -123,18 +123,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onNavigate, curren
               {language === 'en' ? 'हिन्दी / ENG' : 'ENG / हिन्दी'}
             </button>
 
-            {/* Admin Portal Shortcut */}
-            <button
-              onClick={() => handleNavClick(isAdmin ? '/admin/dashboard' : '/admin/login')}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded font-semibold text-[11px] transition ${
-                isAdmin
-                  ? 'bg-amber-600 text-white hover:bg-amber-500'
-                  : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700'
-              }`}
-            >
-              <Lock className="w-3 h-3" />
-              <span>{isAdmin ? 'Admin Dashboard' : 'Admin Login'}</span>
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => handleNavClick('/admin/dashboard')}
+                className="flex items-center gap-1 px-2 py-0.5 rounded font-semibold text-[11px] bg-amber-600 text-white hover:bg-amber-500 transition cursor-pointer"
+                title="Admin Control Center"
+              >
+                <Lock className="w-3 h-3" />
+                <span>Admin Panel</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -319,15 +317,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onNavigate, curren
               </button>
             )}
 
-            {!user ? (
-              <button
-                onClick={() => handleNavClick('/admin/login')}
-                className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg text-xs font-semibold text-center border border-amber-500/30 flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <Lock className="w-3.5 h-3.5" />
-                <span>Admin Portal Login</span>
-              </button>
-            ) : (
+            {user && (
               <div className="space-y-1.5">
                 <button
                   onClick={() => handleNavClick('/profile')}

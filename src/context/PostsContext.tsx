@@ -17,7 +17,7 @@ interface PostsContextType {
   updatePost: (id: string, postData: Partial<Post>) => Promise<{ success: boolean; post?: Post; error?: string }>;
   deletePost: (id: string) => Promise<{ success: boolean; error?: string }>;
   resetDemoData: () => Promise<void>;
-  searchPosts: (query: string, category?: string) => Post[];
+  searchPosts: (query: string, category?: string, includeDrafts?: boolean) => Post[];
 }
 
 const LOCAL_STORAGE_POSTS_KEY = 'examresult_all_posts_v2';
@@ -47,6 +47,8 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const calculateLocalStats = (postList: Post[]): PortalStats => {
     return {
       totalPosts: postList.length,
+      publishedPosts: postList.filter(p => p.status === 'published').length,
+      draftPosts: postList.filter(p => p.status === 'draft').length,
       totalJobs: postList.filter(p => p.category === 'latest-jobs').length,
       totalResults: postList.filter(p => p.category === 'results').length,
       totalAdmitCards: postList.filter(p => p.category === 'admit-card').length,
@@ -183,24 +185,30 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       slug: generatedSlug,
       category: postData.category || 'latest-jobs',
       organization: postData.organization || 'Government Organization',
+      advtNo: postData.advtNo || '',
       stateOrCentral: postData.stateOrCentral || 'All India / Central',
       qualification: postData.qualification || 'Graduate',
       totalVacancies: postData.totalVacancies || '',
       shortDescription: postData.shortDescription || '',
       content: postData.content || '',
       importantDates: postData.importantDates || { applicationBegin: '', lastDate: '' },
-      applicationFee: postData.applicationFee || { generalObc: '', scSt: '', paymentMode: '' },
-      ageLimit: postData.ageLimit || {},
+      applicationFee: postData.applicationFee,
+      ageLimit: postData.ageLimit,
       vacancyDetails: postData.vacancyDetails || [],
+      physicalEligibility: postData.physicalEligibility || [],
+      eligibilitySummary: postData.eligibilitySummary || '',
       howToApply: postData.howToApply || [],
+      importantInstructions: postData.importantInstructions || '',
       importantLinks: postData.importantLinks || [],
       officialWebsite: postData.officialWebsite || '',
       status: postData.status || 'published',
       isFeatured: postData.isFeatured || false,
-      views: 0,
+      views: postData.views || 0,
       publishedAt: postData.publishedAt || new Date().toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      metaTitle: postData.metaTitle || '',
+      metaDescription: postData.metaDescription || '',
     };
 
     // 1. Immediately update React State & localStorage
@@ -350,9 +358,10 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setStats(calculateLocalStats(INITIAL_POSTS));
   };
 
-  const searchPosts = (query: string, category?: string): Post[] => {
+  const searchPosts = (query: string, category?: string, includeDrafts: boolean = false): Post[] => {
     const q = query.toLowerCase().trim();
     return posts.filter(p => {
+      if (!includeDrafts && p.status !== 'published') return false;
       if (category && category !== 'all' && p.category !== category) return false;
       if (!q) return true;
       return (

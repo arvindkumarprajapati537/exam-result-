@@ -11,21 +11,25 @@ export type PostCategory =
 export type PostStatus = 'draft' | 'published';
 
 export interface ImportantDates {
-  applicationBegin: string;
-  lastDate: string;
+  applicationBegin?: string;
+  lastDate?: string;
   feePaymentLastDate?: string;
   examDate?: string;
   admitCardDate?: string;
   resultDate?: string;
+  answerKeyDate?: string;
+  objectionLastDate?: string;
   correctionDate?: string;
+  customDates?: { id: string; label: string; value: string }[];
 }
 
 export interface ApplicationFee {
-  generalObc: string;
-  scSt: string;
+  generalObc?: string;
+  scSt?: string;
   phFemale?: string;
-  paymentMode: string;
+  paymentMode?: string;
   notes?: string;
+  enabled?: boolean;
 }
 
 export interface AgeLimit {
@@ -33,6 +37,7 @@ export interface AgeLimit {
   maxAge?: number | string;
   asOfDate?: string;
   relaxationDetails?: string;
+  enabled?: boolean;
 }
 
 export interface VacancyItem {
@@ -51,13 +56,14 @@ export interface ImportantLink {
   id?: string;
   label: string;
   url: string;
-  type: 'apply' | 'notification' | 'official' | 'admit_card' | 'result' | 'answer_key' | 'syllabus' | 'correction' | 'other';
+  type?: 'apply' | 'notification' | 'official' | 'admit_card' | 'result' | 'answer_key' | 'syllabus' | 'correction' | 'schedule' | 'status' | 'other';
   badge?: string;
+  enabled?: boolean;
 }
 
 export interface PhysicalEligibilityItem {
   id?: string;
-  category: string; // e.g. "Height", "Chest", "Running", "Long Jump"
+  category: string; // e.g. "Height", "Chest", "Running", "Long Jump", "Shot Put"
   male: string;
   female: string;
 }
@@ -75,12 +81,13 @@ export interface Post {
   shortDescription: string;
   content?: string;
   importantDates: ImportantDates;
-  applicationFee: ApplicationFee;
-  ageLimit: AgeLimit;
-  vacancyDetails: VacancyItem[];
+  applicationFee?: ApplicationFee;
+  ageLimit?: AgeLimit;
+  vacancyDetails?: VacancyItem[];
   physicalEligibility?: PhysicalEligibilityItem[];
   eligibilitySummary?: string;
-  howToApply: string[];
+  howToApply?: string[];
+  importantInstructions?: string;
   importantLinks: ImportantLink[];
   officialWebsite?: string;
   status: PostStatus;
@@ -89,6 +96,8 @@ export interface Post {
   publishedAt: string;
   createdAt: string;
   updatedAt: string;
+  metaTitle?: string;
+  metaDescription?: string;
 }
 
 export interface CategoryInfo {
@@ -121,6 +130,8 @@ export interface AuthState {
 
 export interface PortalStats {
   totalPosts: number;
+  publishedPosts: number;
+  draftPosts: number;
   totalJobs: number;
   totalResults: number;
   totalAdmitCards: number;
