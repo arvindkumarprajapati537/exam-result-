@@ -19,14 +19,12 @@ const getEnvVar = (key: string): string | undefined => {
   return undefined;
 };
 
-export const SUPABASE_URL =
-  getEnvVar('VITE_SUPABASE_URL') ||
-  getEnvVar('SUPABASE_URL') ||
-  `https://${SUPABASE_PROJECT_ID}.supabase.co`;
+export const SUPABASE_URL: string =
+  ((import.meta as any)?.env?.VITE_SUPABASE_URL as string) ||
+  'https://congripxkyyqjsuoqvec.supabase.co';
 
-export const SUPABASE_ANON_KEY =
-  getEnvVar('VITE_SUPABASE_ANON_KEY') ||
-  getEnvVar('SUPABASE_KEY') ||
+export const SUPABASE_ANON_KEY: string =
+  ((import.meta as any)?.env?.VITE_SUPABASE_ANON_KEY as string) ||
   'sb_publishable_QGQr1Txr9t1Qc0is_mwJmA_EyM3bSNF';
 
 // Initialize Supabase Client

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, AuthState } from '../types';
-import { supabase } from '../lib/supabase';
+import { supabase, SUPABASE_URL } from '../lib/supabase';
 
 const PRIMARY_ADMIN_EMAIL = 'arvindkumarprajapati537@gmail.com';
 
@@ -197,31 +197,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      // 1. Direct real authentication request to Supabase
+      // 1. Direct real authentication request to Supabase Auth API
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password: cleanPass,
       });
 
       if (error) {
-        console.error('[Supabase Admin Login Error]:', error.message, 'Status:', error.status);
+        console.error('[Supabase Admin Login Error]:', error.message, 'Status:', error.status, 'Name:', error.name);
 
-        // Fallback to server verification if needed
-        try {
-          const serverRes = await fetch('/api/auth/admin-login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
-          });
-          const serverData = await serverRes.json();
-          if (serverRes.ok && serverData.user && serverData.user.role === 'admin') {
-            setUser(serverData.user);
-            setToken(serverData.token);
-            return { success: true };
-          }
-        } catch {}
+        // Distinguish errors cleanly
+        const errorMsg = error.message || '';
+        if (
+          errorMsg.toLowerCase().includes('failed to fetch') ||
+          errorMsg.toLowerCase().includes('networkerror') ||
+          errorMsg.toLowerCase().includes('load failed')
+        ) {
+          // Attempt backend server fallback in case browser network is restricted
+          try {
+            const serverRes = await fetch('/api/auth/admin-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
+            });
+            const serverData = await serverRes.json();
+            if (serverRes.ok && serverData.user && serverData.user.role === 'admin') {
+              setUser(serverData.user);
+              setToken(serverData.token);
+              return { success: true };
+            }
+          } catch {}
 
-        return { success: false, error: error.message || 'Invalid email or password.' };
+          return {
+            success: false,
+            error: `Network error connecting to Supabase Auth (${SUPABASE_URL}). Please verify your internet connection or browser ad-blockers.`,
+          };
+        }
+
+        if (errorMsg.toLowerCase().includes('invalid login credentials')) {
+          // Also try server fallback for the verified admin credentials
+          try {
+            const serverRes = await fetch('/api/auth/admin-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
+            });
+            const serverData = await serverRes.json();
+            if (serverRes.ok && serverData.user && serverData.user.role === 'admin') {
+              setUser(serverData.user);
+              setToken(serverData.token);
+              return { success: true };
+            }
+          } catch {}
+
+          return { success: false, error: 'Invalid email or password.' };
+        }
+
+        if (errorMsg.toLowerCase().includes('email not confirmed')) {
+          return { success: false, error: 'Email not confirmed in Supabase Auth. Please check your inbox or Supabase Dashboard.' };
+        }
+
+        return { success: false, error: error.message || 'Authentication failed with Supabase Auth.' };
       }
 
       if (data?.user && data.session) {
@@ -254,6 +290,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Failed to establish administrator session.' };
     } catch (err: any) {
       console.error('[Admin Login Exception]:', err);
+      // Try fallback to server endpoint
+      try {
+        const serverRes = await fetch('/api/auth/admin-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
+        });
+        const serverData = await serverRes.json();
+        if (serverRes.ok && serverData.user && serverData.user.role === 'admin') {
+          setUser(serverData.user);
+          setToken(serverData.token);
+          return { success: true };
+        }
+      } catch {}
+
       return {
         success: false,
         error: err?.message || 'Authentication error connecting to Supabase Auth service.',
