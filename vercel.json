@@ -1,7 +1,4 @@
 {
-  "version": 2,
-  "cleanUrls": true,
-  "trailingSlash": false,
   "headers": [
     {
       "source": "/sitemap.xml",
@@ -26,10 +23,10 @@
     }
   ],
   "rewrites": [
-    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
-    { "source": "/robots.txt", "destination": "/robots.txt" },
-    { "source": "/ads.txt", "destination": "/ads.txt" },
-    { "source": "/googlec1c8a619c8932e70.html", "destination": "/googlec1c8a619c8932e70.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/((?!assets/|.*\\.(?:xml|txt|html|js|css|png|jpg|jpeg|gif|svg|ico|webp|json|woff|woff2|ttf|map)).*)",
+      "destination": "/index.html"
+    }
   ]
 }
+
