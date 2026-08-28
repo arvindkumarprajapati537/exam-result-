@@ -1184,16 +1184,20 @@ Sitemap: https://exam-result-1.vercel.app/sitemap.xml\n`;
     res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400');
     
     try {
-      const publicSitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
-      const distSitemapPath = path.join(process.cwd(), 'dist', 'sitemap.xml');
-      const fs = await import('fs');
-      if (fs.existsSync(publicSitemapPath)) {
-        return res.sendFile(publicSitemapPath);
-      } else if (fs.existsSync(distSitemapPath)) {
-        return res.sendFile(distSitemapPath);
-      }
+      const { generateSitemapXML } = await import('./generate-sitemap.js');
+      const xml = await generateSitemapXML();
+      return res.send(xml);
     } catch {
-      // fallback if file read fails
+      try {
+        const publicSitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
+        const distSitemapPath = path.join(process.cwd(), 'dist', 'sitemap.xml');
+        const fs = await import('fs');
+        if (fs.existsSync(publicSitemapPath)) {
+          return res.sendFile(publicSitemapPath);
+        } else if (fs.existsSync(distSitemapPath)) {
+          return res.sendFile(distSitemapPath);
+        }
+      } catch {}
     }
     
     res.send(`<?xml version="1.0" encoding="UTF-8"?>
