@@ -33,6 +33,7 @@ import { Post, PhysicalEligibilityItem } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { AgeCalculatorModal } from './AgeCalculatorModal';
+import { AdSenseUnit } from './AdSenseUnit';
 
 interface PostDetailViewProps {
   post: Post;
@@ -753,6 +754,9 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
             </a>
           </div>
         </div>
+
+        {/* Responsive In-Content AdSense Unit */}
+        <AdSenseUnit slot="post_detail_middle" className="my-3" />
 
         {/* 14. Useful Important Links Table (High Visibility Portal Links) */}
         <div className="space-y-2 pt-2">

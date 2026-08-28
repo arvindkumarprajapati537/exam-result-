@@ -15,6 +15,7 @@ import {
 import { Post, PostCategory } from '../types';
 import { PostCard } from '../components/PostCard';
 import { CATEGORIES, QUALIFICATIONS, STATES_AND_REGIONS } from '../data/categories';
+import { AdSenseUnit } from '../components/AdSenseUnit';
 
 interface CategoryListingPageProps {
   category: PostCategory;
@@ -252,6 +253,9 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
           </div>
         )}
       </div>
+
+      {/* Responsive AdSense Category Banner */}
+      <AdSenseUnit slot="category_listing_top" />
 
       {/* Posts Cards Section */}
       {filteredPosts.length === 0 ? (

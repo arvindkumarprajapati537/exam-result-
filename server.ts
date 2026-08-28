@@ -1152,6 +1152,18 @@ async function startServer() {
     }
   }).catch(() => {});
 
+  // Google Search Console direct verification endpoint
+  app.get('/googlec1c8a619c8932e70.html', (req, res) => {
+    res.type('text/html').send('google-site-verification: googlec1c8a619c8932e70.html');
+  });
+
+  // Google AdSense direct ads.txt verification endpoint
+  app.get('/ads.txt', (req, res) => {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.send('google.com, pub-7771376474449956, DIRECT, f08c47fec0942fa0\n');
+  });
+
   // Vite middleware for development vs static serve for production
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

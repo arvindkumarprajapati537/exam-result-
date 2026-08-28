@@ -9,6 +9,7 @@ import { BreakingTicker } from '../components/BreakingTicker';
 import { FloatingHotLinks } from '../components/FloatingHotLinks';
 import { FeaturedActionBlocks } from '../components/FeaturedActionBlocks';
 import { ContentBoxesGrid } from '../components/ContentBoxesGrid';
+import { AdSenseUnit } from '../components/AdSenseUnit';
 import { IMPORTANT_GOV_LINKS } from '../data/importantLinks';
 
 interface HomePageProps {
@@ -40,6 +41,9 @@ export const HomePage: React.FC<HomePageProps> = ({
       <FeaturedActionBlocks
         onSelectPost={onSelectPost}
       />
+
+      {/* Responsive AdSense Banner (Public Home Top) */}
+      <AdSenseUnit slot="home_banner_top" />
 
       {/* Home Page Content Boxes (Section 6: Latest Jobs, Results, Admit Cards, Answer Keys, Admissions, Syllabus) */}
       <ContentBoxesGrid
