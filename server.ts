@@ -1164,6 +1164,67 @@ async function startServer() {
     res.send('google.com, pub-7771376474449956, DIRECT, f08c47fec0942fa0\n');
   });
 
+  // Direct robots.txt endpoint
+  app.get('/robots.txt', (req, res) => {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    const robotsContent = `User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /profile
+
+Sitemap: https://exam-result-1.vercel.app/sitemap.xml\n`;
+    res.send(robotsContent);
+  });
+
+  // Direct dynamic / static sitemap.xml endpoint
+  app.get('/sitemap.xml', async (req, res) => {
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+    
+    try {
+      const publicSitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
+      const distSitemapPath = path.join(process.cwd(), 'dist', 'sitemap.xml');
+      const fs = await import('fs');
+      if (fs.existsSync(publicSitemapPath)) {
+        return res.sendFile(publicSitemapPath);
+      } else if (fs.existsSync(distSitemapPath)) {
+        return res.sendFile(distSitemapPath);
+      }
+    } catch {
+      // fallback if file read fails
+    }
+    
+    res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://exam-result-1.vercel.app/</loc>
+    <lastmod>2026-02-28</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://exam-result-1.vercel.app/latest-jobs</loc>
+    <lastmod>2026-02-28</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://exam-result-1.vercel.app/results</loc>
+    <lastmod>2026-02-28</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://exam-result-1.vercel.app/admit-card</loc>
+    <lastmod>2026-02-28</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+</urlset>`);
+  });
+
   // Vite middleware for development vs static serve for production
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
