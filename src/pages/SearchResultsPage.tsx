@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, Sparkles, Building2, Calendar, ArrowRight } from 'lucide-react';
 import { Post } from '../types';
 import { PostCard } from '../components/PostCard';
 import { CATEGORIES } from '../data/categories';
+import { updatePageSEO } from '../lib/seo';
 
 interface SearchResultsPageProps {
   initialQuery?: string;
@@ -21,6 +22,11 @@ export const SearchResultsPage: React.FC<SearchResultsPageProps> = ({
 }) => {
   const [query, setQuery] = useState(initialQuery);
   const [selectedCat, setSelectedCat] = useState(initialCategory);
+
+  useEffect(() => {
+    const title = query ? `Search: "${query.slice(0, 30)}" – EXAM RESULT` : 'Search Exams & Results – EXAM RESULT';
+    updatePageSEO(title, 'Search latest government jobs, exam results, admit cards, and recruitment notices.');
+  }, [query]);
 
   const results = posts.filter(p => {
     if (p.status !== 'published') return false;

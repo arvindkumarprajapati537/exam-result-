@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ShieldCheck,
   Mail,
@@ -11,8 +11,13 @@ import {
   CheckCircle2,
   Lock,
 } from 'lucide-react';
+import { updatePageSEO } from '../lib/seo';
 
 export const AboutPage: React.FC = () => {
+  useEffect(() => {
+    updatePageSEO('About Us – EXAM RESULT', 'Learn more about EXAM RESULT, our mission, and our verified examination information service.');
+  }, []);
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6">
       <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-8 sm:p-10 shadow-xs space-y-4 sm:space-y-6">
@@ -79,6 +84,10 @@ export const ContactPage: React.FC = () => {
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    updatePageSEO('Contact Support – EXAM RESULT', 'Contact EXAM RESULT candidate helpdesk and editorial team for queries and corrections.');
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -230,6 +239,10 @@ export const ContactPage: React.FC = () => {
 };
 
 export const PrivacyPolicyPage: React.FC = () => {
+  useEffect(() => {
+    updatePageSEO('Privacy Policy – EXAM RESULT', 'Read the privacy and data security policies of EXAM RESULT.');
+  }, []);
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6">
       <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-8 sm:p-10 shadow-xs space-y-4 sm:space-y-6">
@@ -276,6 +289,10 @@ export const PrivacyPolicyPage: React.FC = () => {
 };
 
 export const DisclaimerPage: React.FC = () => {
+  useEffect(() => {
+    updatePageSEO('Disclaimer & Terms – EXAM RESULT', 'Disclaimer of government affiliation and terms of use for EXAM RESULT portal.');
+  }, []);
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6">
       <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-8 sm:p-10 shadow-xs space-y-4 sm:space-y-6">

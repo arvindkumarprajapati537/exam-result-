@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   ExternalLink,
   ChevronRight,
@@ -11,6 +11,7 @@ import { FeaturedActionBlocks } from '../components/FeaturedActionBlocks';
 import { ContentBoxesGrid } from '../components/ContentBoxesGrid';
 import { AdSenseUnit } from '../components/AdSenseUnit';
 import { IMPORTANT_GOV_LINKS } from '../data/importantLinks';
+import { updatePageSEO } from '../lib/seo';
 
 interface HomePageProps {
   onSelectPost: (slug: string) => void;
@@ -23,6 +24,12 @@ export const HomePage: React.FC<HomePageProps> = ({
   onNavigate,
   onOpenSearch,
 }) => {
+  useEffect(() => {
+    updatePageSEO(
+      'EXAM RESULT – Latest Jobs, Results & Admit Cards',
+      'Official Information Portal for Latest Government Jobs, Results, Admit Cards, Answer Keys, Syllabus, and Admissions 2026.'
+    );
+  }, []);
   return (
     <div className="space-y-6">
       {/* Breaking Updates Marquee Ticker */}

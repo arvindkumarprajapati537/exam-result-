@@ -139,9 +139,9 @@ export const AdminChangePasswordPage: React.FC<AdminChangePasswordPageProps> = (
           <div className="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center mx-auto shadow-md font-black">
             <KeyRound className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-black text-white font-serif tracking-tight">
+          <h2 className="text-2xl font-black text-white font-serif tracking-tight">
             Change Admin Password
-          </h1>
+          </h2>
           <p className="text-xs text-slate-400">
             Update your administrator credentials for account{' '}
             <span className="text-amber-400 font-semibold">{user.email}</span>

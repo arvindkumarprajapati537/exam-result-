@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExternalLink, ShieldCheck, Search, Building2, MapPin } from 'lucide-react';
 import { IMPORTANT_GOV_LINKS, GovPortalLink } from '../data/importantLinks';
+import { updatePageSEO } from '../lib/seo';
 
 export const ImportantLinksPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [selectedTag, setSelectedTag] = useState('All');
+
+  useEffect(() => {
+    updatePageSEO(
+      'Important Government Links 2026 – EXAM RESULT',
+      'Official directory of government examination portals, public service commissions, and recruitment boards.'
+    );
+  }, []);
 
   const tags = ['All', 'Central Govt', 'All India', 'Banking', 'Defense', 'Railways', 'Uttar Pradesh', 'Bihar', 'Rajasthan', 'Delhi (NCT)'];
 

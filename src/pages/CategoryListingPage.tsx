@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Search,
   Filter,
@@ -16,6 +16,7 @@ import { Post, PostCategory } from '../types';
 import { PostCard } from '../components/PostCard';
 import { CATEGORIES, QUALIFICATIONS, STATES_AND_REGIONS } from '../data/categories';
 import { AdSenseUnit } from '../components/AdSenseUnit';
+import { getCategoryTitle, getCategoryH1, updatePageSEO } from '../lib/seo';
 
 interface CategoryListingPageProps {
   category: PostCategory;
@@ -39,6 +40,14 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
   const postsPerPage = 8;
 
   const currentCategoryInfo = CATEGORIES.find(c => c.id === category) || CATEGORIES[0];
+
+  // Dynamic SEO Page Title & Meta Tags
+  useEffect(() => {
+    updatePageSEO(
+      getCategoryTitle(category),
+      `Find all latest ${getCategoryH1(category)} on EXAM RESULT. Check online forms, eligibility, dates, and official notices.`
+    );
+  }, [category]);
 
   // Filter & Sort
   const filteredPosts = useMemo(() => {
@@ -116,7 +125,7 @@ export const CategoryListingPage: React.FC<CategoryListingPageProps> = ({
               </span>
             </div>
             <h1 className="text-xl sm:text-3xl font-black text-slate-950 font-serif">
-              {currentCategoryInfo.name} 2026
+              {getCategoryH1(category)}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 font-medium mt-0.5 sm:mt-1">
               {currentCategoryInfo.tagline}

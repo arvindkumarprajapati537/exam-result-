@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar,
   Building2,
@@ -34,6 +34,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { AgeCalculatorModal } from './AgeCalculatorModal';
 import { AdSenseUnit } from './AdSenseUnit';
+import { getPostPageTitle, updatePageSEO } from '../lib/seo';
 
 interface PostDetailViewProps {
   post: Post;
@@ -60,6 +61,13 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
   const organizationName = post.organization || 'Government Examination Board';
   const postTitle = post.title || 'Official Examination Notice';
   const advtNumber = post.advtNo || 'Advt No. : 2026/Recruit-01';
+
+  // Dynamic SEO Page Title & Meta Description
+  useEffect(() => {
+    const pageTitle = getPostPageTitle(postTitle);
+    const desc = post.shortDescription || `Check details, application dates, eligibility, syllabus, and official links for ${postTitle}.`;
+    updatePageSEO(pageTitle, desc);
+  }, [postTitle, post.shortDescription]);
 
   // Format dates safely
   const formattedPostDate = post.publishedAt

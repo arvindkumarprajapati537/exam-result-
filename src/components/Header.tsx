@@ -165,10 +165,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch, onNavigate, curren
 
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight text-blue-950 flex items-center font-serif leading-none">
+                <div className="text-xl sm:text-3xl font-extrabold tracking-tight text-blue-950 flex items-center font-serif leading-none">
                   <span>EXAM</span>
                   <span className="text-rose-600 ml-1 font-sans">RESULT</span>
-                </h1>
+                </div>
                 <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded uppercase tracking-wider hidden md:inline-block">
                   Official Info Portal
                 </span>

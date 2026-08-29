@@ -141,9 +141,9 @@ export const AdminForgotPasswordPage: React.FC<AdminForgotPasswordPageProps> = (
           <div className="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center mx-auto shadow-md font-black">
             <ShieldAlert className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-black text-white font-serif tracking-tight">
+          <h2 className="text-2xl font-black text-white font-serif tracking-tight">
             Admin Password Recovery
-          </h1>
+          </h2>
           <p className="text-xs text-slate-400 leading-relaxed">
             {step === 'request'
               ? 'Enter the email address associated with your authorized Administrator account.'

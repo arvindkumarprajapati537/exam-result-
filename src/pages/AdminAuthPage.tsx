@@ -68,9 +68,9 @@ export const AdminAuthPage: React.FC<AdminAuthPageProps> = ({ onNavigate }) => {
           <div className="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center mx-auto shadow-md font-black">
             <ShieldCheck className="w-7 h-7" />
           </div>
-          <h1 className="text-2xl font-black text-white font-serif tracking-tight">
+          <h2 className="text-2xl font-black text-white font-serif tracking-tight">
             EXAM RESULT ADMIN LOGIN
-          </h1>
+          </h2>
           <p className="text-xs text-slate-400">
             Authorized administrator access for notice management & portal publishing
           </p>

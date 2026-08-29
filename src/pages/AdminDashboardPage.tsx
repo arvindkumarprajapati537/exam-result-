@@ -604,9 +604,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               Logged in as <strong className="text-white">{user.name}</strong>
             </span>
           </div>
-          <h1 className="text-base sm:text-2xl font-black font-serif text-white tracking-tight">
+          <div className="text-base sm:text-2xl font-black font-serif text-white tracking-tight">
             EXAM RESULT Content Management System
-          </h1>
+          </div>
         </div>
 
         {/* Global Tab Navigation Controls */}

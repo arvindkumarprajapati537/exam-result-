@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BellRing, Calendar, Building2, ArrowRight, Sparkles } from 'lucide-react';
 import { Post } from '../types';
 import { usePosts } from '../context/PostsContext';
+import { updatePageSEO } from '../lib/seo';
 
 interface LatestUpdatesPageProps {
   onSelectPost: (slug: string) => void;
@@ -13,6 +14,13 @@ export const LatestUpdatesPage: React.FC<LatestUpdatesPageProps> = ({
   onNavigate,
 }) => {
   const { posts } = usePosts();
+
+  useEffect(() => {
+    updatePageSEO(
+      'Latest Exam Updates 2026 – EXAM RESULT',
+      'Real-time stream of latest exam notices, admit cards, answer keys, and results published in 2026.'
+    );
+  }, []);
 
   // All published posts sorted chronologically
   const sortedPosts = [...posts]
@@ -32,7 +40,7 @@ export const LatestUpdatesPage: React.FC<LatestUpdatesPageProps> = ({
           <span>Real-time Candidate Feed</span>
         </div>
         <h1 className="text-xl sm:text-3xl font-black font-serif">
-          Latest Government Exam Updates & Alerts
+          Latest Exam Updates 2026
         </h1>
         <p className="text-xs sm:text-sm text-orange-100 max-w-2xl">
           Live stream of new application forms, exam date notices, answer keys, results, and syllabus updates released in 2026.

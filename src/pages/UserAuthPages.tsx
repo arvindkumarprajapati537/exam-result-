@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User,
   Lock,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePosts } from '../context/PostsContext';
+import { updatePageSEO } from '../lib/seo';
 
 interface UserLoginPageProps {
   onNavigate: (route: string) => void;
@@ -26,6 +27,10 @@ export const UserLoginPage: React.FC<UserLoginPageProps> = ({ onNavigate }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    updatePageSEO('Candidate Login – EXAM RESULT', 'Sign in to your candidate account to access saved notices and custom exam alerts.');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,6 +171,10 @@ export const UserRegisterPage: React.FC<UserRegisterPageProps> = ({ onNavigate }
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    updatePageSEO('Candidate Register – EXAM RESULT', 'Create your candidate account on EXAM RESULT to bookmark government job notices and receive alerts.');
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -183,7 +192,7 @@ export const UserRegisterPage: React.FC<UserRegisterPageProps> = ({ onNavigate }
     <div className="max-w-md mx-auto px-4 py-12">
       <div className="bg-white rounded-2xl border-2 border-slate-300 p-6 sm:p-8 shadow-md space-y-6">
         <div className="text-center space-y-1">
-          <h1 className="text-2xl font-black text-slate-900 font-serif">Create Candidate Account</h1>
+          <h2 className="text-2xl font-black text-slate-900 font-serif">Create Candidate Account</h2>
           <p className="text-xs text-slate-500">
             Bookmark notifications, track deadlines & personalize exams
           </p>
@@ -270,6 +279,10 @@ interface UserProfilePageProps {
 export const UserProfilePage: React.FC<UserProfilePageProps> = ({ onSelectPost, onNavigate }) => {
   const { user, logout, toggleFavorite } = useAuth();
   const { posts } = usePosts();
+
+  useEffect(() => {
+    updatePageSEO('Candidate Profile – EXAM RESULT', 'Manage your saved bookmarks, examination reminders, and alerts on EXAM RESULT.');
+  }, []);
 
   if (!user) {
     return (

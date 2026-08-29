@@ -28,7 +28,7 @@ export const FloatingHotLinks: React.FC<FloatingHotLinksProps> = ({
       <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-3 sm:p-6 text-center space-y-2.5 sm:space-y-3 overflow-hidden">
         {/* Main Bold Portal Branding Title */}
         <h1 className="text-base sm:text-2xl md:text-3xl font-extrabold text-[#0000cc] tracking-tight font-serif break-words leading-snug">
-          EXAM RESULT 2026 – ExamResult.in – Sarkari Job, Admit Card & Result Portal
+          EXAM RESULT – Latest Jobs, Results & Exam Updates
         </h1>
 
         {/* Apps & Social Community Utility Row */}
