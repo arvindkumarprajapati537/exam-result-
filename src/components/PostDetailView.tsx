@@ -121,38 +121,18 @@ export const PostDetailView: React.FC<PostDetailViewProps> = ({
     window.open('https://x.com/Arvindk29646455', '_blank');
   };
 
-  // Check if physical eligibility table is needed
-  const isPoliceOrDefence =
-    post.physicalEligibility && post.physicalEligibility.length > 0
-      ? true
-      : /police|constable|fireman|army|navy|airforce|defence|gd|daroga|sub-inspector|si|bsf|cisf|crpf|ssb|itbp/i.test(
-          `${post.title} ${post.organization} ${post.shortDescription || ''}`
-        );
-
-  const defaultPhysicalDetails: PhysicalEligibilityItem[] = [
-    {
-      category: 'Height',
-      male: 'Gen / OBC / SC: 168 CM (ST: 160 CM)',
-      female: 'Gen / OBC / SC: 152 CM (ST: 147 CM)',
-    },
-    {
-      category: 'Chest',
-      male: '79 - 84 CM (Exp. 5 CM) [ST: 77-82 CM]',
-      female: 'Not Applicable (Min Weight 40 KG)',
-    },
-    {
-      category: 'Running Race',
-      male: '4.8 KM in 25 Minutes',
-      female: '2.4 KM in 14 Minutes',
-    },
-  ];
-
-  const physicalDetailsToDisplay: PhysicalEligibilityItem[] =
-    post.physicalEligibility && post.physicalEligibility.length > 0
-      ? post.physicalEligibility
-      : isPoliceOrDefence
-      ? defaultPhysicalDetails
-      : [];
+  // Physical eligibility details: ONLY displayed when explicitly added by admin with non-empty fields
+  const physicalDetailsToDisplay: PhysicalEligibilityItem[] = (
+    post.physicalEligibility || []
+  ).filter(
+    item =>
+      item &&
+      Boolean(
+        (item.category && item.category.trim() !== '') ||
+        (item.male && item.male.trim() !== '') ||
+        (item.female && item.female.trim() !== '')
+      )
+  );
 
   // Related posts
   const relatedPosts = allPosts

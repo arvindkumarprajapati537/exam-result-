@@ -59,6 +59,23 @@ export const INITIAL_POSTS: Post[] = [
       },
     ],
     eligibilitySummary: '10+2 (Intermediate) Passed with Physical Fitness Standards (Male Running: 4.8 km in 25 mins, Female: 2.4 km in 14 mins).',
+    physicalEligibility: [
+      {
+        category: 'Height',
+        male: 'Gen / OBC / SC: 168 CM (ST: 160 CM)',
+        female: 'Gen / OBC / SC: 152 CM (ST: 147 CM)',
+      },
+      {
+        category: 'Chest',
+        male: '79 - 84 CM (Exp. 5 CM) [ST: 77-82 CM]',
+        female: 'Not Applicable (Min Weight 40 KG)',
+      },
+      {
+        category: 'Running Race',
+        male: '4.8 KM in 25 Minutes',
+        female: '2.4 KM in 14 Minutes',
+      },
+    ],
     howToApply: [
       'Candidates can apply online through the official portal of UPPRPB between 15/01/2026 and 28/02/2026.',
       'Read the official notification carefully before filling the application form to confirm eligibility.',

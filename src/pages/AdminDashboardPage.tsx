@@ -340,12 +340,20 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
     const payloadSlug = formData.slug?.trim() || handleSlugify(formData.title);
 
+    const cleanedPhysicalEligibility = (formData.physicalEligibility || []).filter(
+      pe =>
+        (pe.category && pe.category.trim() !== '') ||
+        (pe.male && pe.male.trim() !== '') ||
+        (pe.female && pe.female.trim() !== '')
+    );
+
     const payload: Partial<Post> = {
       ...formData,
       title: formData.title.trim(),
       organization: formData.organization.trim(),
       slug: payloadSlug,
       status: targetStatus,
+      physicalEligibility: cleanedPhysicalEligibility,
       publishedAt: formData.publishedAt || new Date().toISOString(),
     };
 
